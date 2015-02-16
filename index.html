@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Attractors</title>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <div id="control">
+      <select name="attractor">
+        <option value="kingsDream">The King's Dream</option>
+        <option value="rampe4">Rampe 4</option>
+      </select>
+      a <input type="text" name="a" value="0">
+      b <input type="text" name="b" value="0">
+      c <input type="text" name="c" value="0">
+      d <input type="text" name="d" value="0">
+      e <input type="text" name="e" value="0">
+      f <input type="text" name="f" value="0">
+      <button type="button" name="update">Update</button>
+    </div>
+
+    <script id="shader-frag" type="x-shader/x-fragment">
+      precision mediump float;
+
+      void main(void) {
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 0.2);
+      }
+    </script>
+    <script id="shader-vert" type="x-shader/x-vertex">
+      precision mediump float;
+
+      attribute vec3 position;
+
+      uniform mat4 mvp;
+
+      void main(void) {
+        gl_Position = mvp * vec4(position, 1.0);
+      }
+    </script>
+    <script src="bundle.js"></script>
+
+    <!-- <script> -->
+      <!-- (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ -->
+      <!-- (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), -->
+      <!-- m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) -->
+      <!-- })(window,document,'script','//www.google-analytics.com/analytics.js','ga'); -->
+
+      <!-- ga('create', 'UA-309586-8', 'auto'); -->
+      <!-- ga('send', 'pageview'); -->
+
+    <!-- </script> -->
+  </body>
+</html>

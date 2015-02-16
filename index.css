@@ -1,0 +1,31 @@
+body {
+  padding: 0;
+  margin: 0;
+
+  font-family: sans-serif;
+}
+
+#control {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1em;
+  color: #fff;
+}
+
+#control input {
+  width: 3em;
+  text-align: right;
+  margin-right: 1em;
+}
+
+a {
+  color: #999;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #000;
+  text-decoration: underline;
+}

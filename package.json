@@ -1,0 +1,17 @@
+{
+  "name": "attractors",
+  "version": "1.0.0",
+  "description": "Strange attractors in WebGL",
+  "dependencies": {
+    "gl-mat4": "^1.1.2"
+  },
+  "devDependencies": {
+    "webpack": "^1.5.3"
+  },
+  "scripts": {
+    "start": "webpack --watch --progress --colors",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shuhei Kagawa <shuhei.kagawa@gmail.com>",
+  "license": "BSD"
+}
