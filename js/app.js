@@ -1,8 +1,6 @@
 var mat = require('gl-mat4');
 var createProgram = require('./shader');
 
-var attractors = require('./attractor');
-
 module.exports = {
   init: init,
   draw: draw,
@@ -34,15 +32,10 @@ function init(gl) {
 
   // Calc vertices.
   vertices = new Float32Array(ITERATIONS * 3);
-
-  var args = [gl, 'rampe4'].concat(attractors.rampe4.defaults);
-  update.apply(null, args);
 }
 
 function update(gl, attractor, a, b, c, d, e, f) {
-  console.log(attractor, a, b, c, d, e, f);
-  var calc = attractors[attractor];
-  calc(vertices, ITERATIONS, a, b, c, d, e, f);
+  attractor(vertices, ITERATIONS, a, b, c, d, e, f);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 }
 

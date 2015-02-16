@@ -46,23 +46,30 @@
 
 	var app = __webpack_require__(1);
 	var fit = __webpack_require__(2);
-	var form = __webpack_require__(31);
+	var form = __webpack_require__(3);
+	var attractors = __webpack_require__(5);
 
 	var canvas = document.createElement('canvas');
 	document.body.appendChild(canvas);
 	fit(canvas);
 
+	var DEFAULT_ATTRACTOR = 'rampe4';
+	var args = [DEFAULT_ATTRACTOR].concat(attractors[DEFAULT_ATTRACTOR].defaults);
+	form.set.apply(form, args);
+	console.log(form.data);
+
 	var gl = canvas.getContext('webgl');
 	app.init(gl);
-	// update();
+	update();
 	draw();
 
 	form.onUpdate(update);
 
 	function update() {
 	  var data = form.data;
-	  var args = [gl, data.attractor].concat(data.params);
-	  app.update.apply(app, args);
+	  var attractor = attractors[data.attractor];
+	  var args = [gl, attractor].concat(data.params);
+	  app.update.apply(null, args);
 	}
 
 	function draw() {
@@ -75,10 +82,8 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var mat = __webpack_require__(4);
-	var createProgram = __webpack_require__(3);
-
-	var attractors = __webpack_require__(30);
+	var mat = __webpack_require__(6);
+	var createProgram = __webpack_require__(4);
 
 	module.exports = {
 	  init: init,
@@ -111,15 +116,10 @@
 
 	  // Calc vertices.
 	  vertices = new Float32Array(ITERATIONS * 3);
-
-	  var args = [gl, 'rampe4'].concat(attractors.rampe4.defaults);
-	  update.apply(null, args);
 	}
 
 	function update(gl, attractor, a, b, c, d, e, f) {
-	  console.log(attractor, a, b, c, d, e, f);
-	  var calc = attractors[attractor];
-	  calc(vertices, ITERATIONS, a, b, c, d, e, f);
+	  attractor(vertices, ITERATIONS, a, b, c, d, e, f);
 	  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 	}
 
@@ -178,6 +178,76 @@
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
+	var select = document.getElementsByName('attractor')[0];
+	var fields = paramNames.map(function(name) {
+	  return document.getElementsByName(name)[0];
+	});
+	var paramValues = paramNames.map(function(name) {
+	  return document.getElementsByName(name + '-value')[0];
+	});
+	var button = document.getElementsByName('update')[0];
+
+	var listeners = [];
+	var form = {
+	  data: null,
+	  onUpdate: onUpdate,
+	  set: set
+	};
+	updateData();
+	updateView();
+
+	fields.forEach(function(field) {
+	  field.addEventListener('change', function() {
+	    updateData();
+	    updateView();
+	  });
+	});
+
+	button.addEventListener('click', function() {
+	  listeners.forEach(function(listener) {
+	    listener();
+	  });
+	});
+
+	module.exports = form;
+
+	function set(attractor, a, b, c, d, e, f) {
+	  var args = arguments;
+	  select.value = attractor;
+	  fields.forEach(function(field, i) {
+	    field.value = args[i + 1];
+	  });
+	  updateData();
+	  updateView();
+	}
+
+	function updateView() {
+	  form.data.params.forEach(function(param, i) {
+	    paramValues[i].innerText = param;
+	  });
+	}
+
+	function updateData() {
+	  var attractor = select.value;
+	  var params = fields.map(function(field) {
+	    return parseFloat(field.value, 10);
+	  });
+	  form.data = {
+	    attractor: attractor,
+	    params: params
+	  };
+	}
+	  
+	function onUpdate(listener) {
+	  listeners.push(listener);
+	};
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
 	module.exports = createProgram;
 
 	function createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames) {
@@ -226,37 +296,147 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  create: __webpack_require__(5)
-	  , clone: __webpack_require__(6)
-	  , copy: __webpack_require__(7)
-	  , identity: __webpack_require__(8)
-	  , transpose: __webpack_require__(9)
-	  , invert: __webpack_require__(10)
-	  , adjoint: __webpack_require__(11)
-	  , determinant: __webpack_require__(12)
-	  , multiply: __webpack_require__(13)
-	  , translate: __webpack_require__(14)
-	  , scale: __webpack_require__(15)
-	  , rotate: __webpack_require__(16)
-	  , rotateX: __webpack_require__(17)
-	  , rotateY: __webpack_require__(18)
-	  , rotateZ: __webpack_require__(19)
-	  , fromRotationTranslation: __webpack_require__(20)
-	  , fromQuat: __webpack_require__(21)
-	  , frustum: __webpack_require__(22)
-	  , perspective: __webpack_require__(23)
-	  , perspectiveFromFieldOfView: __webpack_require__(24)
-	  , ortho: __webpack_require__(25)
-	  , lookAt: __webpack_require__(26)
-	  , str: __webpack_require__(27)
+	  rampe4: __webpack_require__(7),
+	  kingsDream: __webpack_require__(8)
+	};
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	  create: __webpack_require__(9)
+	  , clone: __webpack_require__(10)
+	  , copy: __webpack_require__(11)
+	  , identity: __webpack_require__(12)
+	  , transpose: __webpack_require__(13)
+	  , invert: __webpack_require__(14)
+	  , adjoint: __webpack_require__(15)
+	  , determinant: __webpack_require__(16)
+	  , multiply: __webpack_require__(17)
+	  , translate: __webpack_require__(18)
+	  , scale: __webpack_require__(19)
+	  , rotate: __webpack_require__(20)
+	  , rotateX: __webpack_require__(21)
+	  , rotateY: __webpack_require__(22)
+	  , rotateZ: __webpack_require__(23)
+	  , fromRotationTranslation: __webpack_require__(24)
+	  , fromQuat: __webpack_require__(25)
+	  , frustum: __webpack_require__(26)
+	  , perspective: __webpack_require__(27)
+	  , perspectiveFromFieldOfView: __webpack_require__(28)
+	  , ortho: __webpack_require__(29)
+	  , lookAt: __webpack_require__(30)
+	  , str: __webpack_require__(31)
 	}
 
 /***/ },
-/* 5 */
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = [
+	  1.5,
+	  -3.5,
+	  -0.765145,
+	  -0.744728,
+	  -2.5,
+	  -1.83
+	];
+
+	// Rampe4
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, a, b, c, d, e, f) {
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+	  for (i = 0; i < 100; i++) {
+	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
+	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
+	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+	  for (i = 0; i < iterations; i++) {
+	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
+	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
+	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	    vertices[i * 3] = x;
+	    vertices[i * 3 + 1] = y;
+	    vertices[i * 3 + 2] = z;
+	  }
+	  return vertices;
+	}
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = [
+	  -0.966918,
+	  2.879879,
+	  0.966918,
+	  1.765145,
+	  0.744728,
+	  0.765145
+	];
+
+	// The king's dream
+	// http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
+	function calc(vertices, iterations, a, b, c, d, e, f) {
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
+	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
+	    zNew = Math.sin(y * b) + e * Math.sin(z * b);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+	  for (i = 0; i < iterations; i++) {
+	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
+	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
+	    zNew = Math.sin(y * b) + e * Math.sin(z * b);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	    vertices[i * 3] = x;
+	    vertices[i * 3 + 1] = y;
+	    vertices[i * 3 + 2] = z;
+	  }
+	  return vertices;
+	}
+
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = create;
@@ -288,7 +468,7 @@
 	};
 
 /***/ },
-/* 6 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = clone;
@@ -321,7 +501,7 @@
 	};
 
 /***/ },
-/* 7 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = copy;
@@ -354,7 +534,7 @@
 	};
 
 /***/ },
-/* 8 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = identity;
@@ -386,7 +566,7 @@
 	};
 
 /***/ },
-/* 9 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = transpose;
@@ -440,7 +620,7 @@
 	};
 
 /***/ },
-/* 10 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = invert;
@@ -500,7 +680,7 @@
 	};
 
 /***/ },
-/* 11 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = adjoint;
@@ -538,7 +718,7 @@
 	};
 
 /***/ },
-/* 12 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = determinant;
@@ -573,7 +753,7 @@
 	};
 
 /***/ },
-/* 13 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = multiply;
@@ -620,7 +800,7 @@
 	};
 
 /***/ },
-/* 14 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = translate;
@@ -663,7 +843,7 @@
 	};
 
 /***/ },
-/* 15 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = scale;
@@ -699,7 +879,7 @@
 	};
 
 /***/ },
-/* 16 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotate;
@@ -768,7 +948,7 @@
 	};
 
 /***/ },
-/* 17 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateX;
@@ -817,7 +997,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateY;
@@ -866,7 +1046,7 @@
 	};
 
 /***/ },
-/* 19 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateZ;
@@ -915,7 +1095,7 @@
 	};
 
 /***/ },
-/* 20 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromRotationTranslation;
@@ -973,7 +1153,7 @@
 	};
 
 /***/ },
-/* 21 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromQuat;
@@ -1025,7 +1205,7 @@
 	};
 
 /***/ },
-/* 22 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = frustum;
@@ -1066,7 +1246,7 @@
 	};
 
 /***/ },
-/* 23 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspective;
@@ -1104,7 +1284,7 @@
 	};
 
 /***/ },
-/* 24 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspectiveFromFieldOfView;
@@ -1150,7 +1330,7 @@
 
 
 /***/ },
-/* 25 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = ortho;
@@ -1191,10 +1371,10 @@
 	};
 
 /***/ },
-/* 26 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var identity = __webpack_require__(8);
+	var identity = __webpack_require__(12);
 
 	module.exports = lookAt;
 
@@ -1286,7 +1466,7 @@
 	};
 
 /***/ },
-/* 27 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = str;
@@ -1303,159 +1483,6 @@
 	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' + 
 	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
 	};
-
-/***/ },
-/* 28 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = calc;
-
-	// TODO: Figure out better parameters.
-	calc.defaults = [
-	  1.5,
-	  -3.5,
-	  -0.765145,
-	  -0.744728,
-	  -2.5,
-	  -1.83
-	];
-
-	// Rampe4
-	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, a, b, c, d, e, f) {
-	  var x = 0.1;
-	  var y = 0.1;
-	  var z = 0.1;
-
-	  var xNew;
-	  var yNew;
-	  var zNew;
-	  var i;
-	  for (i = 0; i < 100; i++) {
-	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	  }
-	  for (i = 0; i < iterations; i++) {
-	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	    vertices[i * 3] = x;
-	    vertices[i * 3 + 1] = y;
-	    vertices[i * 3 + 2] = z;
-	  }
-	  return vertices;
-	}
-
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = calc;
-
-	// TODO: Figure out better parameters.
-	calc.defaults = [
-	  -0.966918,
-	  2.879879,
-	  0.966918,
-	  1.765145,
-	  0.744728,
-	  0.765145
-	];
-
-	// The king's dream
-	// http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
-	function calc(vertices, iterations, a, b, c, d, e, f) {
-	  var x = 0.1;
-	  var y = 0.1;
-	  var z = 0.1;
-
-	  var xNew;
-	  var yNew;
-	  var i;
-
-	  for (i = 0; i < 100; i++) {
-	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
-	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
-	    zNew = Math.sin(y * b) + e * Math.sin(z * b);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	  }
-	  for (i = 0; i < iterations; i++) {
-	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
-	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
-	    zNew = Math.sin(y * b) + e * Math.sin(z * b);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	    vertices[i * 3] = x;
-	    vertices[i * 3 + 1] = y;
-	    vertices[i * 3 + 2] = z;
-	  }
-	  return vertices;
-	}
-
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = {
-	  rampe4: __webpack_require__(28),
-	  kingsDream: __webpack_require__(29)
-	};
-
-
-/***/ },
-/* 31 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var select = document.getElementsByName('attractor')[0];
-	var fields = ['a', 'b', 'c', 'd', 'e', 'f'].map(function(name) {
-	  return document.getElementsByName(name)[0];
-	});
-	var button = document.getElementsByName('update')[0];
-
-	var listeners = [];
-	var form = {
-	  data: null,
-	  onUpdate: onUpdate
-	  // TODO: set
-	};
-	updateData();
-
-	button.addEventListener('click', function() {
-	  updateData();
-	  listeners.forEach(function(listener) {
-	    listener();
-	  });
-	});
-
-	module.exports = form;
-
-	function updateData() {
-	  var attractor = select.value;
-	  var params = fields.map(function(field) {
-	    return parseFloat(field.value, 10);
-	  });
-	  form.data = {
-	    attractor: attractor,
-	    params: params
-	  };
-	}
-	  
-	function onUpdate(listener) {
-	  listeners.push(listener);
-	};
-
 
 /***/ }
 /******/ ])
