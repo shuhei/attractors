@@ -15,7 +15,16 @@ var getStates = control(canvas, INITIAL_DISTANCE);
 form.set(DEFAULT_ATTRACTOR, attractors[DEFAULT_ATTRACTOR].defaults);
 console.log(form.data);
 
-var gl = canvas.getContext('webgl');
+canvas.addEventListener('webglcontextlost', function(e) {
+  console.log('context lost', e);
+  e.preventDefault();
+}, false);
+
+canvas.addEventListener('webglcontextrestores', function(e) {
+  console.log('context restored', e);
+}, false);
+
+var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 app.init(gl);
 update();
 draw();

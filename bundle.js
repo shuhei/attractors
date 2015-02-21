@@ -61,7 +61,16 @@
 	form.set(DEFAULT_ATTRACTOR, attractors[DEFAULT_ATTRACTOR].defaults);
 	console.log(form.data);
 
-	var gl = canvas.getContext('webgl');
+	canvas.addEventListener('webglcontextlost', function(e) {
+	  console.log('context lost', e);
+	  e.preventDefault();
+	}, false);
+
+	canvas.addEventListener('webglcontextrestores', function(e) {
+	  console.log('context restored', e);
+	}, false);
+
+	var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 	app.init(gl);
 	update();
 	draw();
@@ -499,6 +508,8 @@
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
 	module.exports = function(vertices, iterations) {
 	  var h;
 	  var x;
@@ -514,21 +525,24 @@
 	    h = 6 * i / iterations;
 	    x = 1 - Math.abs(h % 2 - 1)
 	    if (h < 1) {
-	    } else if (1 <= h && h < 2) {
 	      r = 1;
 	      g = x;
 	      b = 0;
-	    } else if (2 <= h && h < 3) {
+	    } else if (1 <= h && h < 2) {
 	      r = x;
 	      g = 1;
 	      b = 0;
-	    } else if (3 <= h && h < 4) {
+	    } else if (2 <= h && h < 3) {
 	      r = 0;
 	      g = 1;
 	      b = x;
-	    } else if (4 <= h && h < 5) {
+	    } else if (3 <= h && h < 4) {
 	      r = 0;
 	      g = x;
+	      b = 1;
+	    } else if (4 <= h && h < 5) {
+	      r = x;
+	      g = 0;
 	      b = 1;
 	    } else if (5 <= h) {
 	      r = 1;
@@ -602,6 +616,10 @@
 	    vertices[i * 6] = x;
 	    vertices[i * 6 + 1] = y;
 	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
 	  }
 
 	  return vertices;
@@ -665,6 +683,10 @@
 	    vertices[i * 6] = x;
 	    vertices[i * 6 + 1] = y;
 	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
 	  }
 
 	  return vertices;

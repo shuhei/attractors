@@ -51,6 +51,10 @@ function calc(vertices, iterations, params) {
     vertices[i * 6] = x;
     vertices[i * 6 + 1] = y;
     vertices[i * 6 + 2] = z;
+
+    // Glitch
+    // a = vertices[i * 6 + 5];
+    // b = vertices[i * 6 + 5];
   }
 
   return vertices;
