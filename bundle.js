@@ -51,7 +51,7 @@
 	var attractors = __webpack_require__(5);
 
 	var INITIAL_DISTANCE = 6;
-	var DEFAULT_ATTRACTOR = 'rampe4';
+	var DEFAULT_ATTRACTOR = 'kingsDream';
 
 	var canvas = document.createElement('canvas');
 	document.body.appendChild(canvas);
@@ -448,6 +448,8 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
+	  rampe1: __webpack_require__(35),
+	  rampe3: __webpack_require__(36),
 	  rampe4: __webpack_require__(8),
 	  kingsDream: __webpack_require__(9)
 	};
@@ -571,10 +573,7 @@
 	calc.defaults = {
 	  a: 1.5,
 	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
+	  c: -0.765145
 	};
 
 	// Rampe4
@@ -583,9 +582,6 @@
 	  var a = params.a;
 	  var b = params.b;
 	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -597,18 +593,18 @@
 	  var i;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    xNew = z * Math.sin(a * x) + Math.cos(a * y);
+	    yNew = x * Math.sin(b * y) + Math.cos(b * z);
+	    zNew = y * Math.sin(c * z) + Math.cos(c * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    xNew = z * Math.sin(a * x) + Math.cos(a * y);
+	    yNew = x * Math.sin(b * y) + Math.cos(b * z);
+	    zNew = y * Math.sin(c * z) + Math.cos(c * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -639,7 +635,7 @@
 	  a: -0.966918,
 	  b: 2.879879,
 	  c: 0.966918,
-	  d: 1.765145,
+	  d: 0.736,
 	  e: 0.744728,
 	  f: 0.765145
 	};
@@ -1771,6 +1767,141 @@
 	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' + 
 	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
 	};
+
+/***/ },
+/* 34 */,
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = {
+	  a: 1.5,
+	  b: -3.5,
+	  c: -0.765145,
+	  d: -0.744728,
+	  e: -2.5,
+	  f: -1.83
+	};
+
+	// Rampe1
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.d;
+	  var e = params.e;
+	  var f = params.f;
+
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
+	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
+	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+
+	  for (i = 0; i < iterations; i++) {
+	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
+	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
+	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+
+	    vertices[i * 6] = x;
+	    vertices[i * 6 + 1] = y;
+	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
+	  }
+
+	  return vertices;
+	}
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = {
+	  a: 1.5,
+	  b: -3.5,
+	  c: -0.765145,
+	  d: -0.744728,
+	  e: -2.5,
+	  f: -1.83
+	};
+
+	// Rampe3
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.d;
+	  var e = params.e;
+	  var f = params.f;
+
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = x * z * Math.sin(a * x) - Math.cos(b * y);
+	    yNew = y * x * Math.sin(c * y) - Math.cos(d * z);
+	    zNew = z * y * Math.sin(e * z) - Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+
+	  for (i = 0; i < iterations; i++) {
+	    xNew = x * z * Math.sin(a * x) - Math.cos(b * y);
+	    yNew = y * x * Math.sin(c * y) - Math.cos(d * z);
+	    zNew = z * y * Math.sin(e * z) - Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+
+	    vertices[i * 6] = x;
+	    vertices[i * 6 + 1] = y;
+	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
+	  }
+
+	  return vertices;
+	}
+
 
 /***/ }
 /******/ ])

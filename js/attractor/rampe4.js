@@ -6,10 +6,7 @@ module.exports = calc;
 calc.defaults = {
   a: 1.5,
   b: -3.5,
-  c: -0.765145,
-  d: -0.744728,
-  e: -2.5,
-  f: -1.83
+  c: -0.765145
 };
 
 // Rampe4
@@ -18,9 +15,6 @@ function calc(vertices, iterations, params) {
   var a = params.a;
   var b = params.b;
   var c = params.c;
-  var d = params.d;
-  var e = params.e;
-  var f = params.f;
 
   var x = 0.1;
   var y = 0.1;
@@ -32,18 +26,18 @@ function calc(vertices, iterations, params) {
   var i;
 
   for (i = 0; i < 100; i++) {
-    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+    xNew = z * Math.sin(a * x) + Math.cos(a * y);
+    yNew = x * Math.sin(b * y) + Math.cos(b * z);
+    zNew = y * Math.sin(c * z) + Math.cos(c * x);
     x = xNew;
     y = yNew;
     z = zNew;
   }
 
   for (i = 0; i < iterations; i++) {
-    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+    xNew = z * Math.sin(a * x) + Math.cos(a * y);
+    yNew = x * Math.sin(b * y) + Math.cos(b * z);
+    zNew = y * Math.sin(c * z) + Math.cos(c * x);
     x = xNew;
     y = yNew;
     z = zNew;

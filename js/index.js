@@ -5,7 +5,7 @@ var control = require('./control');
 var attractors = require('./attractor');
 
 var INITIAL_DISTANCE = 6;
-var DEFAULT_ATTRACTOR = 'rampe4';
+var DEFAULT_ATTRACTOR = 'kingsDream';
 
 var canvas = document.createElement('canvas');
 document.body.appendChild(canvas);

@@ -4,22 +4,22 @@ module.exports = calc;
 
 // TODO: Figure out better parameters.
 calc.defaults = {
-  a: -0.966918,
-  b: 2.879879,
-  c: 0.966918,
-  d: 0.736,
-  e: 0.744728,
-  f: 0.765145
+  a: 1.5,
+  b: -3.5,
+  c: -0.765145,
+  d: -0.744728,
+  e: -2.5,
+  f: -1.83
 };
 
-// The king's dream
-// http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
+// Rampe3
+// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
 function calc(vertices, iterations, params) {
   var a = params.a;
   var b = params.b;
   var c = params.c;
-  var d = params.e;
-  var e = params.d;
+  var d = params.d;
+  var e = params.e;
   var f = params.f;
 
   var x = 0.1;
@@ -32,18 +32,18 @@ function calc(vertices, iterations, params) {
   var i;
 
   for (i = 0; i < 100; i++) {
-    xNew = Math.sin(z * c) + f * Math.sin(x * c);
-    yNew = Math.sin(x * a) + d * Math.sin(y * a);
-    zNew = Math.sin(y * b) + e * Math.sin(z * b);
+    xNew = x * z * Math.sin(a * x) - Math.cos(b * y);
+    yNew = y * x * Math.sin(c * y) - Math.cos(d * z);
+    zNew = z * y * Math.sin(e * z) - Math.cos(f * x);
     x = xNew;
     y = yNew;
     z = zNew;
   }
 
   for (i = 0; i < iterations; i++) {
-    xNew = Math.sin(z * c) + f * Math.sin(x * c);
-    yNew = Math.sin(x * a) + d * Math.sin(y * a);
-    zNew = Math.sin(y * b) + e * Math.sin(z * b);
+    xNew = x * z * Math.sin(a * x) - Math.cos(b * y);
+    yNew = y * x * Math.sin(c * y) - Math.cos(d * z);
+    zNew = z * y * Math.sin(e * z) - Math.cos(f * x);
     x = xNew;
     y = yNew;
     z = zNew;
