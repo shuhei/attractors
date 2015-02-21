@@ -215,7 +215,13 @@
 	  });
 	});
 
+	select.addEventListener('change', function() {
+	  updateData();
+	  updateView();
+	});
+
 	button.addEventListener('click', function() {
+	  console.log(form.data);
 	  listeners.forEach(function(listener) {
 	    listener();
 	  });
@@ -490,6 +496,10 @@
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	var addColor = __webpack_require__(10);
+
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
@@ -521,12 +531,6 @@
 	  var zNew;
 	  var i;
 
-	  var h;
-	  var colorX;
-	  var r;
-	  var g;
-	  var b;
-
 	  for (i = 0; i < 100; i++) {
 	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
 	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
@@ -535,6 +539,7 @@
 	    y = yNew;
 	    z = zNew;
 	  }
+
 	  for (i = 0; i < iterations; i++) {
 	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
 	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
@@ -543,45 +548,22 @@
 	    y = yNew;
 	    z = zNew;
 
-	    h = 6 * i / iterations;
-	    colorX = 1 - Math.abs(h % 2 - 1)
-	    if (h < 1) {
-	    } else if (1 <= h && h < 2) {
-	      r = 1;
-	      g = colorX;
-	      b = 0;
-	    } else if (2 <= h && h < 3) {
-	      r = colorX;
-	      g = 1;
-	      b = 0;
-	    } else if (3 <= h && h < 4) {
-	      r = 0;
-	      g = 1;
-	      b = colorX;
-	    } else if (4 <= h && h < 5) {
-	      r = 0;
-	      g = colorX;
-	      b = 1;
-	    } else if (5 <= h) {
-	      r = 1;
-	      g = 0;
-	      b = colorX;
-	    }
-
 	    vertices[i * 6] = x;
 	    vertices[i * 6 + 1] = y;
 	    vertices[i * 6 + 2] = z;
-	    vertices[i * 6 + 3] = r;
-	    vertices[i * 6 + 4] = g;
-	    vertices[i * 6 + 5] = b;
 	  }
-	  return vertices;
+
+	  return addColor(vertices, iterations);
 	}
 
 
 /***/ },
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var addColor = __webpack_require__(10);
 
 	module.exports = calc;
 
@@ -611,13 +593,8 @@
 
 	  var xNew;
 	  var yNew;
+	  var zNew;
 	  var i;
-
-	  var h;
-	  var colorX;
-	  var r;
-	  var g;
-	  var b;
 
 	  for (i = 0; i < 100; i++) {
 	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
@@ -627,6 +604,7 @@
 	    y = yNew;
 	    z = zNew;
 	  }
+
 	  for (i = 0; i < iterations; i++) {
 	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
 	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
@@ -635,39 +613,12 @@
 	    y = yNew;
 	    z = zNew;
 
-	    h = 6 * i / iterations;
-	    colorX = 1 - Math.abs(h % 2 - 1)
-	    if (h < 1) {
-	    } else if (1 <= h && h < 2) {
-	      r = 1;
-	      g = colorX;
-	      b = 0;
-	    } else if (2 <= h && h < 3) {
-	      r = colorX;
-	      g = 1;
-	      b = 0;
-	    } else if (3 <= h && h < 4) {
-	      r = 0;
-	      g = 1;
-	      b = colorX;
-	    } else if (4 <= h && h < 5) {
-	      r = 0;
-	      g = colorX;
-	      b = 1;
-	    } else if (5 <= h) {
-	      r = 1;
-	      g = 0;
-	      b = colorX;
-	    }
-
 	    vertices[i * 6] = x;
 	    vertices[i * 6 + 1] = y;
 	    vertices[i * 6 + 2] = z;
-	    vertices[i * 6 + 3] = r;
-	    vertices[i * 6 + 4] = g;
-	    vertices[i * 6 + 5] = b;
 	  }
-	  return vertices;
+
+	  return addColor(vertices, iterations);
 	}
 
 
@@ -676,33 +627,83 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  create: __webpack_require__(10)
-	  , clone: __webpack_require__(11)
-	  , copy: __webpack_require__(12)
-	  , identity: __webpack_require__(13)
-	  , transpose: __webpack_require__(14)
-	  , invert: __webpack_require__(15)
-	  , adjoint: __webpack_require__(16)
-	  , determinant: __webpack_require__(17)
-	  , multiply: __webpack_require__(18)
-	  , translate: __webpack_require__(19)
-	  , scale: __webpack_require__(20)
-	  , rotate: __webpack_require__(21)
-	  , rotateX: __webpack_require__(22)
-	  , rotateY: __webpack_require__(23)
-	  , rotateZ: __webpack_require__(24)
-	  , fromRotationTranslation: __webpack_require__(25)
-	  , fromQuat: __webpack_require__(26)
-	  , frustum: __webpack_require__(27)
-	  , perspective: __webpack_require__(28)
-	  , perspectiveFromFieldOfView: __webpack_require__(29)
-	  , ortho: __webpack_require__(30)
-	  , lookAt: __webpack_require__(31)
-	  , str: __webpack_require__(32)
+	  create: __webpack_require__(11)
+	  , clone: __webpack_require__(12)
+	  , copy: __webpack_require__(13)
+	  , identity: __webpack_require__(14)
+	  , transpose: __webpack_require__(15)
+	  , invert: __webpack_require__(16)
+	  , adjoint: __webpack_require__(17)
+	  , determinant: __webpack_require__(18)
+	  , multiply: __webpack_require__(19)
+	  , translate: __webpack_require__(20)
+	  , scale: __webpack_require__(21)
+	  , rotate: __webpack_require__(22)
+	  , rotateX: __webpack_require__(23)
+	  , rotateY: __webpack_require__(24)
+	  , rotateZ: __webpack_require__(25)
+	  , fromRotationTranslation: __webpack_require__(26)
+	  , fromQuat: __webpack_require__(27)
+	  , frustum: __webpack_require__(28)
+	  , perspective: __webpack_require__(29)
+	  , perspectiveFromFieldOfView: __webpack_require__(30)
+	  , ortho: __webpack_require__(31)
+	  , lookAt: __webpack_require__(32)
+	  , str: __webpack_require__(33)
 	}
 
 /***/ },
 /* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = function(vertices, iterations) {
+	  var h;
+	  var x;
+
+	  var r;
+	  var g;
+	  var b;
+
+	  var i;
+
+	  for (i = 0; i < iterations; i++) {
+	    // HSL to RGB where S and L are always 1.
+	    h = 6 * i / iterations;
+	    x = 1 - Math.abs(h % 2 - 1)
+	    if (h < 1) {
+	    } else if (1 <= h && h < 2) {
+	      r = 1;
+	      g = x;
+	      b = 0;
+	    } else if (2 <= h && h < 3) {
+	      r = x;
+	      g = 1;
+	      b = 0;
+	    } else if (3 <= h && h < 4) {
+	      r = 0;
+	      g = 1;
+	      b = x;
+	    } else if (4 <= h && h < 5) {
+	      r = 0;
+	      g = x;
+	      b = 1;
+	    } else if (5 <= h) {
+	      r = 1;
+	      g = 0;
+	      b = x;
+	    }
+
+	    vertices[i * 6 + 3] = r;
+	    vertices[i * 6 + 4] = g;
+	    vertices[i * 6 + 5] = b;
+	  }
+
+	  return vertices;
+	};
+
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = create;
@@ -734,7 +735,7 @@
 	};
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = clone;
@@ -767,7 +768,7 @@
 	};
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = copy;
@@ -800,7 +801,7 @@
 	};
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = identity;
@@ -832,7 +833,7 @@
 	};
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = transpose;
@@ -886,7 +887,7 @@
 	};
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = invert;
@@ -946,7 +947,7 @@
 	};
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = adjoint;
@@ -984,7 +985,7 @@
 	};
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = determinant;
@@ -1019,7 +1020,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = multiply;
@@ -1066,7 +1067,7 @@
 	};
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = translate;
@@ -1109,7 +1110,7 @@
 	};
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = scale;
@@ -1145,7 +1146,7 @@
 	};
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotate;
@@ -1214,7 +1215,7 @@
 	};
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateX;
@@ -1263,7 +1264,7 @@
 	};
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateY;
@@ -1312,7 +1313,7 @@
 	};
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateZ;
@@ -1361,7 +1362,7 @@
 	};
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromRotationTranslation;
@@ -1419,7 +1420,7 @@
 	};
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromQuat;
@@ -1471,7 +1472,7 @@
 	};
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = frustum;
@@ -1512,7 +1513,7 @@
 	};
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspective;
@@ -1550,7 +1551,7 @@
 	};
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspectiveFromFieldOfView;
@@ -1596,7 +1597,7 @@
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = ortho;
@@ -1637,10 +1638,10 @@
 	};
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var identity = __webpack_require__(13);
+	var identity = __webpack_require__(14);
 
 	module.exports = lookAt;
 
@@ -1732,7 +1733,7 @@
 	};
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = str;

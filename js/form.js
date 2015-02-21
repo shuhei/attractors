@@ -26,7 +26,13 @@ paramNames.forEach(function(name) {
   });
 });
 
+select.addEventListener('change', function() {
+  updateData();
+  updateView();
+});
+
 button.addEventListener('click', function() {
+  console.log(form.data);
   listeners.forEach(function(listener) {
     listener();
   });
