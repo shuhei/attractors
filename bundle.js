@@ -47,15 +47,18 @@
 	var app = __webpack_require__(1);
 	var fit = __webpack_require__(2);
 	var form = __webpack_require__(3);
+	var control = __webpack_require__(4);
 	var attractors = __webpack_require__(5);
+
+	var INITIAL_DISTANCE = 6;
+	var DEFAULT_ATTRACTOR = 'rampe4';
 
 	var canvas = document.createElement('canvas');
 	document.body.appendChild(canvas);
 	fit(canvas);
+	var getStates = control(canvas, INITIAL_DISTANCE);
 
-	var DEFAULT_ATTRACTOR = 'rampe4';
-	var args = [DEFAULT_ATTRACTOR].concat(attractors[DEFAULT_ATTRACTOR].defaults);
-	form.set.apply(form, args);
+	form.set(DEFAULT_ATTRACTOR, attractors[DEFAULT_ATTRACTOR].defaults);
 	console.log(form.data);
 
 	var gl = canvas.getContext('webgl');
@@ -73,7 +76,8 @@
 	}
 
 	function draw() {
-	  app.draw(gl, Date.now());
+	  var states = getStates();
+	  app.draw(gl, Date.now(), states.rotation, states.distance);
 	  requestAnimationFrame(draw);
 	}
 
@@ -82,8 +86,8 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var mat = __webpack_require__(6);
-	var createProgram = __webpack_require__(4);
+	var mat = __webpack_require__(9);
+	var createProgram = __webpack_require__(6);
 
 	module.exports = {
 	  init: init,
@@ -92,20 +96,20 @@
 	};
 
 	var ITERATIONS = 100000;
-	var ROTATION_TIME = 5000;
-	var VIEW_TRANSLATE = [0, 0, -6];
+	var ROTATION_TIME = 100000;
 
 	var program;
 	var buffer;
 	var vertices;
 	var mvp = mat.create();
+	var viewTranslate = [0, 0, 0];
 
 	function init(gl) {
 	  // Create shaders and program.
 	  var vertSrc = getScript('shader-vert');
 	  var fragSrc = getScript('shader-frag');
 	  var attributeNames = ['position'];
-	  var uniformNames = ['mvp'];
+	  var uniformNames = ['mvp', 'alpha'];
 	  program = createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames);
 
 	  // Create buffer.
@@ -118,12 +122,12 @@
 	  vertices = new Float32Array(ITERATIONS * 3);
 	}
 
-	function update(gl, attractor, a, b, c, d, e, f) {
-	  attractor(vertices, ITERATIONS, a, b, c, d, e, f);
+	function update(gl, attractor, params) {
+	  attractor(vertices, ITERATIONS, params);
 	  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 	}
 
-	function draw(gl, t, volume) {
+	function draw(gl, t, rotation, distance) {
 	  var w = gl.drawingBufferWidth;
 	  var h = gl.drawingBufferHeight;
 	  gl.viewport(0, 0, w, h);
@@ -132,18 +136,21 @@
 
 	  gl.useProgram(program.program);
 
+	  viewTranslate[2] = -distance;
+
 	  var theta = (t % ROTATION_TIME) / ROTATION_TIME * Math.PI * 2;
 	  mat.identity(mvp);
 
 	  // Perspective
-	  mat.perspective(mvp, Math.PI / 4, w / h, 0.1, 100);
+	  mat.perspective(mvp, Math.PI / 4, w / h, 0.1, 50);
 
 	  // Model View
-	  mat.translate(mvp, mvp, VIEW_TRANSLATE);
-	  mat.rotateX(mvp, mvp, theta);
-	  mat.rotateY(mvp, mvp, theta);
+	  mat.translate(mvp, mvp, viewTranslate);
+	  mat.rotateY(mvp, mvp, rotation.x + theta);
+	  mat.rotateX(mvp, mvp, rotation.y + theta);
 
 	  gl.uniformMatrix4fv(program.uniforms.mvp, false, mvp);
+	  gl.uniform1f(program.uniforms.alpha, 0.2 / (distance / 6));
 
 	  gl.enable(gl.BLEND);
 	  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE)
@@ -180,12 +187,14 @@
 
 	var paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
 	var select = document.getElementsByName('attractor')[0];
-	var fields = paramNames.map(function(name) {
-	  return document.getElementsByName(name)[0];
-	});
-	var paramValues = paramNames.map(function(name) {
-	  return document.getElementsByName(name + '-value')[0];
-	});
+	var fields = paramNames.reduce(function(acc, name) {
+	  acc[name] = document.getElementsByName(name)[0];
+	  return acc;
+	}, {});
+	var paramValues = paramNames.reduce(function(acc, name) {
+	  acc[name] = document.getElementsByName(name + '-value')[0];
+	  return acc;
+	}, {});
 	var button = document.getElementsByName('update')[0];
 
 	var listeners = [];
@@ -197,8 +206,8 @@
 	updateData();
 	updateView();
 
-	fields.forEach(function(field) {
-	  field.addEventListener('change', function() {
+	paramNames.forEach(function(name) {
+	  fields[name].addEventListener('change', function() {
 	    updateData();
 	    updateView();
 	  });
@@ -212,33 +221,34 @@
 
 	module.exports = form;
 
-	function set(attractor, a, b, c, d, e, f) {
-	  var args = arguments;
+	function set(attractor, params) {
 	  select.value = attractor;
-	  fields.forEach(function(field, i) {
-	    field.value = args[i + 1];
+	  Object.keys(params).forEach(function(name) {
+	    fields[name].value = params[name];
 	  });
 	  updateData();
 	  updateView();
 	}
 
-	function updateView() {
-	  form.data.params.forEach(function(param, i) {
-	    paramValues[i].innerText = param;
-	  });
-	}
-
 	function updateData() {
 	  var attractor = select.value;
-	  var params = fields.map(function(field) {
-	    return parseFloat(field.value, 10);
-	  });
+	  var params = paramNames.reduce(function(acc, name) {
+	    var field = fields[name];
+	    acc[name] = parseFloat(field.value, 10);
+	    return acc;
+	  }, {});
 	  form.data = {
 	    attractor: attractor,
 	    params: params
 	  };
 	}
-	  
+
+	function updateView() {
+	  Object.keys(form.data.params).forEach(function(name, i) {
+	    paramValues[name].innerText = form.data.params[name];
+	  });
+	}
+
 	function onUpdate(listener) {
 	  listeners.push(listener);
 	};
@@ -246,6 +256,185 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var DISTANCE_LOWER_BOUND = 0.1;
+	var DISTANCE_UPPER_BOUND = 45;
+	var ZOOM_SPEED = 0.000001;
+	var ROTATION_INERTIA = 0.9;
+	var DISTANCE_INERTIA = 0.7;
+	var MOUSE_TO_RADIAN = Math.PI / 300.0;
+
+	module.exports = function(container, initialDistance) {
+	  var rotation = { x: 0, y: 0 };
+	  var target = { x: 0, y: 0 };
+	  var targetOnDown = { x: 0, y: 0};
+	  var mouse = { x: 0, y: 0 };
+	  var mouseOnDown = { x: 0, y: 0 };
+
+	  var distance = initialDistance;
+	  var distanceTarget = initialDistance;
+
+	  var lastClickTime = new Date().getTime();
+	  var isBirdView = true;
+
+	  var touchEnabled = false;
+	  var downEventName, upEventName, outEventName, moveEventName;
+	  if ('ontouchstart' in document.documentElement) {
+	    touchEnabled = true;
+	    downEventName = 'touchstart';
+	    upEventName = 'touchend';
+	    outEventName = 'touchcancel';
+	    moveEventName = 'touchmove';
+	  } else {
+	    downEventName = 'mousedown';
+	    upEventName = 'mouseup';
+	    outEventName = 'mouseout';
+	    moveEventName = 'mousemove';
+	  }
+
+	  // For pinch gesture on touch devices.
+	  var previousScale = null;
+
+	  //
+	  // Event handlers
+	  //
+
+	  function onMouseDown(event) {
+	    event.preventDefault();
+
+	    // Check if it's double click/tap.
+	    var currentTime = new Date().getTime();
+	    var diff = currentTime - lastClickTime;
+	    var isSingleTap = touchEnabled && event.targetTouches.length === 1;
+	    lastClickTime = currentTime;
+	    if ((!touchEnabled || isSingleTap) && diff < 300) {
+	      isBirdView = !isBirdView;
+	      return;
+	    }
+
+	    container.addEventListener(moveEventName, onMouseMove, false);
+	    container.addEventListener(upEventName, onMouseUp, false);
+	    container.addEventListener(outEventName, onMouseOut, false);
+
+	    if (touchEnabled) {
+	      if (event.targetTouches.length !== 1) {
+	        return;
+	      }
+	      var touchItem = event.targetTouches[0];
+	      mouseOnDown.x = - touchItem.pageX;
+	      mouseOnDown.y = touchItem.pageY;
+	    } else {
+	      mouseOnDown.x = - event.clientX;
+	      mouseOnDown.y = event.clientY;
+	    }
+
+	    targetOnDown.x = target.x;
+	    targetOnDown.y = target.y;
+
+	    container.style.cursor = 'move';
+	  }
+
+	  function onMouseUp(event) {
+	    container.removeEventListener(moveEventName, onMouseMove, false);
+	    container.removeEventListener(upEventName, onMouseUp, false);
+	    container.removeEventListener(outEventName, onMouseOut, false);
+	    container.style.cursor = 'auto';
+	  }
+
+	  function onMouseOut(event) {
+	    container.removeEventListener(outEventName, onMouseMove, false);
+	    container.removeEventListener(upEventName, onMouseUp, false);
+	    container.removeEventListener(outEventName, onMouseOut, false);
+	  }
+
+	  function onMouseMove(event) {
+	    if (touchEnabled) {
+	      if (event.targetTouches.length !== 1) {
+	        return;
+	      }
+	      var touchItem = event.targetTouches[0];
+	      mouse.x = - touchItem.pageX;
+	      mouse.y = touchItem.pageY;
+	    } else {
+	      mouse.x = - event.clientX;
+	      mouse.y = event.clientY;
+	    }
+
+	    target.x = targetOnDown.x + (mouse.x - mouseOnDown.x) * MOUSE_TO_RADIAN;
+	    target.y = targetOnDown.y + (mouse.y - mouseOnDown.y) * MOUSE_TO_RADIAN;
+	  }
+
+	  function onMouseWheel(event) {
+	    // mousewheel -> wheelDeltaY, wheel -> deltaY
+	    var deltaY = event.wheelDeltaY || event.deltaY || 0;
+	    event.preventDefault();
+	    zoom(deltaY * 0.3);
+	    return false;
+	  }
+
+	  function onGestureStart(event) {
+	    previousScale = event.scale;
+	  }
+
+	  function onGestureChange(event) {
+	    var scale = event.scale / previousScale;
+	    zoom(ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
+	    previsousScale = event.scale;
+	  }
+
+	  function onGestureEnd(event) {
+	    var scale = event.scale / previousScale;
+	    zoom(ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
+	    previousScale = null;
+	  }
+
+	  function zoom(delta) {
+	    distanceTarget -= delta;
+	    distanceTarget = distanceTarget > DISTANCE_UPPER_BOUND ? DISTANCE_UPPER_BOUND : distanceTarget;
+	    distanceTarget = distanceTarget < DISTANCE_LOWER_BOUND ? DISTANCE_LOWER_BOUND : distanceTarget;
+	  }
+
+	  container.addEventListener(downEventName, onMouseDown, false);
+	  // For Chrome
+	  container.addEventListener('mousewheel', onMouseWheel, false);
+	  // For Firefox
+	  container.addEventListener('wheel', onMouseWheel, false);
+
+	  // For iOS touch devices
+	  container.addEventListener('gesturestart', onGestureStart, false);
+	  container.addEventListener('gesturechange', onGestureChange, false);
+	  container.addEventListener('gestureend', onGestureEnd, false);
+
+	  var states = {
+	    rotation: rotation,
+	    distance: distance
+	  };
+
+	  return function() {
+	    rotation.x += (target.x - rotation.x) * (1.0 - ROTATION_INERTIA);
+	    rotation.y += (target.y - rotation.y) * (1.0 - ROTATION_INERTIA);
+
+	    distance += (distanceTarget - distance) * (1.0 - DISTANCE_INERTIA);
+
+	    states.distance = distance;
+	    return states;
+	  };
+	};
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	  rampe4: __webpack_require__(7),
+	  kingsDream: __webpack_require__(8)
+	};
+
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = createProgram;
@@ -296,64 +485,31 @@
 
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = {
-	  rampe4: __webpack_require__(7),
-	  kingsDream: __webpack_require__(8)
-	};
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = {
-	  create: __webpack_require__(9)
-	  , clone: __webpack_require__(10)
-	  , copy: __webpack_require__(11)
-	  , identity: __webpack_require__(12)
-	  , transpose: __webpack_require__(13)
-	  , invert: __webpack_require__(14)
-	  , adjoint: __webpack_require__(15)
-	  , determinant: __webpack_require__(16)
-	  , multiply: __webpack_require__(17)
-	  , translate: __webpack_require__(18)
-	  , scale: __webpack_require__(19)
-	  , rotate: __webpack_require__(20)
-	  , rotateX: __webpack_require__(21)
-	  , rotateY: __webpack_require__(22)
-	  , rotateZ: __webpack_require__(23)
-	  , fromRotationTranslation: __webpack_require__(24)
-	  , fromQuat: __webpack_require__(25)
-	  , frustum: __webpack_require__(26)
-	  , perspective: __webpack_require__(27)
-	  , perspectiveFromFieldOfView: __webpack_require__(28)
-	  , ortho: __webpack_require__(29)
-	  , lookAt: __webpack_require__(30)
-	  , str: __webpack_require__(31)
-	}
-
-/***/ },
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = [
-	  1.5,
-	  -3.5,
-	  -0.765145,
-	  -0.744728,
-	  -2.5,
-	  -1.83
-	];
+	calc.defaults = {
+	  a: 1.5,
+	  b: -3.5,
+	  c: -0.765145,
+	  d: -0.744728,
+	  e: -2.5,
+	  f: -1.83
+	};
 
 	// Rampe4
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, a, b, c, d, e, f) {
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.d;
+	  var e = params.e;
+	  var f = params.f;
+
 	  var x = 0.1;
 	  var y = 0.1;
 	  var z = 0.1;
@@ -392,18 +548,25 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = [
-	  -0.966918,
-	  2.879879,
-	  0.966918,
-	  1.765145,
-	  0.744728,
-	  0.765145
-	];
+	calc.defaults = {
+	  a: -0.966918,
+	  b: 2.879879,
+	  c: 0.966918,
+	  d: 1.765145,
+	  e: 0.744728,
+	  f: 0.765145
+	};
 
 	// The king's dream
 	// http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
-	function calc(vertices, iterations, a, b, c, d, e, f) {
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.e;
+	  var e = params.d;
+	  var f = params.f;
+
 	  var x = 0.1;
 	  var y = 0.1;
 	  var z = 0.1;
@@ -439,6 +602,36 @@
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
+	module.exports = {
+	  create: __webpack_require__(10)
+	  , clone: __webpack_require__(11)
+	  , copy: __webpack_require__(12)
+	  , identity: __webpack_require__(13)
+	  , transpose: __webpack_require__(14)
+	  , invert: __webpack_require__(15)
+	  , adjoint: __webpack_require__(16)
+	  , determinant: __webpack_require__(17)
+	  , multiply: __webpack_require__(18)
+	  , translate: __webpack_require__(19)
+	  , scale: __webpack_require__(20)
+	  , rotate: __webpack_require__(21)
+	  , rotateX: __webpack_require__(22)
+	  , rotateY: __webpack_require__(23)
+	  , rotateZ: __webpack_require__(24)
+	  , fromRotationTranslation: __webpack_require__(25)
+	  , fromQuat: __webpack_require__(26)
+	  , frustum: __webpack_require__(27)
+	  , perspective: __webpack_require__(28)
+	  , perspectiveFromFieldOfView: __webpack_require__(29)
+	  , ortho: __webpack_require__(30)
+	  , lookAt: __webpack_require__(31)
+	  , str: __webpack_require__(32)
+	}
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
 	module.exports = create;
 
 	/**
@@ -468,7 +661,7 @@
 	};
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = clone;
@@ -501,7 +694,7 @@
 	};
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = copy;
@@ -534,7 +727,7 @@
 	};
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = identity;
@@ -566,7 +759,7 @@
 	};
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = transpose;
@@ -620,7 +813,7 @@
 	};
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = invert;
@@ -680,7 +873,7 @@
 	};
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = adjoint;
@@ -718,7 +911,7 @@
 	};
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = determinant;
@@ -753,7 +946,7 @@
 	};
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = multiply;
@@ -800,7 +993,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = translate;
@@ -843,7 +1036,7 @@
 	};
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = scale;
@@ -879,7 +1072,7 @@
 	};
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotate;
@@ -948,7 +1141,7 @@
 	};
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateX;
@@ -997,7 +1190,7 @@
 	};
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateY;
@@ -1046,7 +1239,7 @@
 	};
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateZ;
@@ -1095,7 +1288,7 @@
 	};
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromRotationTranslation;
@@ -1153,7 +1346,7 @@
 	};
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromQuat;
@@ -1205,7 +1398,7 @@
 	};
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = frustum;
@@ -1246,7 +1439,7 @@
 	};
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspective;
@@ -1284,7 +1477,7 @@
 	};
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspectiveFromFieldOfView;
@@ -1330,7 +1523,7 @@
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = ortho;
@@ -1371,10 +1564,10 @@
 	};
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var identity = __webpack_require__(12);
+	var identity = __webpack_require__(13);
 
 	module.exports = lookAt;
 
@@ -1466,7 +1659,7 @@
 	};
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = str;

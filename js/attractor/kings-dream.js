@@ -1,18 +1,25 @@
 module.exports = calc;
 
 // TODO: Figure out better parameters.
-calc.defaults = [
-  -0.966918,
-  2.879879,
-  0.966918,
-  1.765145,
-  0.744728,
-  0.765145
-];
+calc.defaults = {
+  a: -0.966918,
+  b: 2.879879,
+  c: 0.966918,
+  d: 1.765145,
+  e: 0.744728,
+  f: 0.765145
+};
 
 // The king's dream
 // http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
-function calc(vertices, iterations, a, b, c, d, e, f) {
+function calc(vertices, iterations, params) {
+  var a = params.a;
+  var b = params.b;
+  var c = params.c;
+  var d = params.e;
+  var e = params.d;
+  var f = params.f;
+
   var x = 0.1;
   var y = 0.1;
   var z = 0.1;

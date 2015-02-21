@@ -8,20 +8,20 @@ module.exports = {
 };
 
 var ITERATIONS = 100000;
-var ROTATION_TIME = 5000;
-var VIEW_TRANSLATE = [0, 0, -6];
+var ROTATION_TIME = 100000;
 
 var program;
 var buffer;
 var vertices;
 var mvp = mat.create();
+var viewTranslate = [0, 0, 0];
 
 function init(gl) {
   // Create shaders and program.
   var vertSrc = getScript('shader-vert');
   var fragSrc = getScript('shader-frag');
   var attributeNames = ['position'];
-  var uniformNames = ['mvp'];
+  var uniformNames = ['mvp', 'alpha'];
   program = createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames);
 
   // Create buffer.
@@ -34,12 +34,12 @@ function init(gl) {
   vertices = new Float32Array(ITERATIONS * 3);
 }
 
-function update(gl, attractor, a, b, c, d, e, f) {
-  attractor(vertices, ITERATIONS, a, b, c, d, e, f);
+function update(gl, attractor, params) {
+  attractor(vertices, ITERATIONS, params);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 }
 
-function draw(gl, t, volume) {
+function draw(gl, t, rotation, distance) {
   var w = gl.drawingBufferWidth;
   var h = gl.drawingBufferHeight;
   gl.viewport(0, 0, w, h);
@@ -48,18 +48,21 @@ function draw(gl, t, volume) {
 
   gl.useProgram(program.program);
 
+  viewTranslate[2] = -distance;
+
   var theta = (t % ROTATION_TIME) / ROTATION_TIME * Math.PI * 2;
   mat.identity(mvp);
 
   // Perspective
-  mat.perspective(mvp, Math.PI / 4, w / h, 0.1, 100);
+  mat.perspective(mvp, Math.PI / 4, w / h, 0.1, 50);
 
   // Model View
-  mat.translate(mvp, mvp, VIEW_TRANSLATE);
-  mat.rotateX(mvp, mvp, theta);
-  mat.rotateY(mvp, mvp, theta);
+  mat.translate(mvp, mvp, viewTranslate);
+  mat.rotateY(mvp, mvp, rotation.x + theta);
+  mat.rotateX(mvp, mvp, rotation.y + theta);
 
   gl.uniformMatrix4fv(program.uniforms.mvp, false, mvp);
+  gl.uniform1f(program.uniforms.alpha, 0.2 / (distance / 6));
 
   gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE)

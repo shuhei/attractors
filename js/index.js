@@ -1,15 +1,18 @@
 var app = require('./app');
 var fit = require('./fit');
 var form = require('./form');
+var control = require('./control');
 var attractors = require('./attractor');
+
+var INITIAL_DISTANCE = 6;
+var DEFAULT_ATTRACTOR = 'rampe4';
 
 var canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
 fit(canvas);
+var getStates = control(canvas, INITIAL_DISTANCE);
 
-var DEFAULT_ATTRACTOR = 'rampe4';
-var args = [DEFAULT_ATTRACTOR].concat(attractors[DEFAULT_ATTRACTOR].defaults);
-form.set.apply(form, args);
+form.set(DEFAULT_ATTRACTOR, attractors[DEFAULT_ATTRACTOR].defaults);
 console.log(form.data);
 
 var gl = canvas.getContext('webgl');
@@ -27,6 +30,7 @@ function update() {
 }
 
 function draw() {
-  app.draw(gl, Date.now());
+  var states = getStates();
+  app.draw(gl, Date.now(), states.rotation, states.distance);
   requestAnimationFrame(draw);
 }
