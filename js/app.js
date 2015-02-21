@@ -20,7 +20,7 @@ function init(gl) {
   // Create shaders and program.
   var vertSrc = getScript('shader-vert');
   var fragSrc = getScript('shader-frag');
-  var attributeNames = ['position'];
+  var attributeNames = ['position', 'color'];
   var uniformNames = ['mvp', 'alpha'];
   program = createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames);
 
@@ -28,10 +28,12 @@ function init(gl) {
   buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
   gl.enableVertexAttribArray(program.attributes.position);
-  gl.vertexAttribPointer(program.attributes.position, 3, gl.FLOAT, false, 0, 0);
+  gl.vertexAttribPointer(program.attributes.position, 3, gl.FLOAT, false, 24, 0);
+  gl.enableVertexAttribArray(program.attributes.color);
+  gl.vertexAttribPointer(program.attributes.color, 3, gl.FLOAT, false, 24, 12);
 
   // Calc vertices.
-  vertices = new Float32Array(ITERATIONS * 3);
+  vertices = new Float32Array(ITERATIONS * 6);
 }
 
 function update(gl, attractor, params) {

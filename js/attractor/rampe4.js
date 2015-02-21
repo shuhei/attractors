@@ -28,6 +28,13 @@ function calc(vertices, iterations, params) {
   var yNew;
   var zNew;
   var i;
+
+  var h;
+  var colorX;
+  var r;
+  var g;
+  var b;
+
   for (i = 0; i < 100; i++) {
     xNew = x * Math.sin(a * x) + Math.cos(b * y);
     yNew = y * Math.sin(c * y) + Math.cos(d * z);
@@ -43,9 +50,38 @@ function calc(vertices, iterations, params) {
     x = xNew;
     y = yNew;
     z = zNew;
-    vertices[i * 3] = x;
-    vertices[i * 3 + 1] = y;
-    vertices[i * 3 + 2] = z;
+
+    h = 6 * i / iterations;
+    colorX = 1 - Math.abs(h % 2 - 1)
+    if (h < 1) {
+    } else if (1 <= h && h < 2) {
+      r = 1;
+      g = colorX;
+      b = 0;
+    } else if (2 <= h && h < 3) {
+      r = colorX;
+      g = 1;
+      b = 0;
+    } else if (3 <= h && h < 4) {
+      r = 0;
+      g = 1;
+      b = colorX;
+    } else if (4 <= h && h < 5) {
+      r = 0;
+      g = colorX;
+      b = 1;
+    } else if (5 <= h) {
+      r = 1;
+      g = 0;
+      b = colorX;
+    }
+
+    vertices[i * 6] = x;
+    vertices[i * 6 + 1] = y;
+    vertices[i * 6 + 2] = z;
+    vertices[i * 6 + 3] = r;
+    vertices[i * 6 + 4] = g;
+    vertices[i * 6 + 5] = b;
   }
   return vertices;
 }
