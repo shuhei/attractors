@@ -1,5 +1,6 @@
 var mat = require('gl-mat4');
 var createProgram = require('./shader');
+var addColor = require('./add-color');
 
 module.exports = {
   init: init,
@@ -34,6 +35,7 @@ function init(gl) {
 
   // Calc vertices.
   vertices = new Float32Array(ITERATIONS * 6);
+  addColor(vertices, ITERATIONS);
 }
 
 function update(gl, attractor, params) {

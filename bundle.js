@@ -88,6 +88,7 @@
 
 	var mat = __webpack_require__(9);
 	var createProgram = __webpack_require__(6);
+	var addColor = __webpack_require__(34);
 
 	module.exports = {
 	  init: init,
@@ -122,6 +123,7 @@
 
 	  // Calc vertices.
 	  vertices = new Float32Array(ITERATIONS * 6);
+	  addColor(vertices, ITERATIONS);
 	}
 
 	function update(gl, attractor, params) {
@@ -267,8 +269,9 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var DISTANCE_LOWER_BOUND = 0.1;
-	var DISTANCE_UPPER_BOUND = 45;
-	var ZOOM_SPEED = 0.000001;
+	var DISTANCE_UPPER_BOUND = 10;
+	var GESTURE_ZOOM_SPEED = 0.01;
+	var WHEEL_ZOOM_SPEED = 0.01;
 	var ROTATION_INERTIA = 0.9;
 	var DISTANCE_INERTIA = 0.7;
 	var MOUSE_TO_RADIAN = Math.PI / 300.0;
@@ -377,7 +380,7 @@
 	    // mousewheel -> wheelDeltaY, wheel -> deltaY
 	    var deltaY = event.wheelDeltaY || event.deltaY || 0;
 	    event.preventDefault();
-	    zoom(deltaY * 0.3);
+	    zoom(deltaY * WHEEL_ZOOM_SPEED);
 	    return false;
 	  }
 
@@ -387,13 +390,13 @@
 
 	  function onGestureChange(event) {
 	    var scale = event.scale / previousScale;
-	    zoom(ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
+	    zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
 	    previsousScale = event.scale;
 	  }
 
 	  function onGestureEnd(event) {
 	    var scale = event.scale / previousScale;
-	    zoom(ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
+	    zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
 	    previousScale = null;
 	  }
 
@@ -498,8 +501,6 @@
 
 	'use strict';
 
-	var addColor = __webpack_require__(10);
-
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
@@ -553,7 +554,7 @@
 	    vertices[i * 6 + 2] = z;
 	  }
 
-	  return addColor(vertices, iterations);
+	  return vertices;
 	}
 
 
@@ -562,8 +563,6 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-
-	var addColor = __webpack_require__(10);
 
 	module.exports = calc;
 
@@ -618,7 +617,7 @@
 	    vertices[i * 6 + 2] = z;
 	  }
 
-	  return addColor(vertices, iterations);
+	  return vertices;
 	}
 
 
@@ -653,56 +652,7 @@
 	}
 
 /***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = function(vertices, iterations) {
-	  var h;
-	  var x;
-
-	  var r;
-	  var g;
-	  var b;
-
-	  var i;
-
-	  for (i = 0; i < iterations; i++) {
-	    // HSL to RGB where S and L are always 1.
-	    h = 6 * i / iterations;
-	    x = 1 - Math.abs(h % 2 - 1)
-	    if (h < 1) {
-	    } else if (1 <= h && h < 2) {
-	      r = 1;
-	      g = x;
-	      b = 0;
-	    } else if (2 <= h && h < 3) {
-	      r = x;
-	      g = 1;
-	      b = 0;
-	    } else if (3 <= h && h < 4) {
-	      r = 0;
-	      g = 1;
-	      b = x;
-	    } else if (4 <= h && h < 5) {
-	      r = 0;
-	      g = x;
-	      b = 1;
-	    } else if (5 <= h) {
-	      r = 1;
-	      g = 0;
-	      b = x;
-	    }
-
-	    vertices[i * 6 + 3] = r;
-	    vertices[i * 6 + 4] = g;
-	    vertices[i * 6 + 5] = b;
-	  }
-
-	  return vertices;
-	};
-
-
-/***/ },
+/* 10 */,
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -1750,6 +1700,56 @@
 	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' + 
 	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
 	};
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = function(vertices, iterations) {
+	  var h;
+	  var x;
+
+	  var r;
+	  var g;
+	  var b;
+
+	  var i;
+
+	  for (i = 0; i < iterations; i++) {
+	    // HSL to RGB where S and L are always 1.
+	    h = 6 * i / iterations;
+	    x = 1 - Math.abs(h % 2 - 1)
+	    if (h < 1) {
+	    } else if (1 <= h && h < 2) {
+	      r = 1;
+	      g = x;
+	      b = 0;
+	    } else if (2 <= h && h < 3) {
+	      r = x;
+	      g = 1;
+	      b = 0;
+	    } else if (3 <= h && h < 4) {
+	      r = 0;
+	      g = 1;
+	      b = x;
+	    } else if (4 <= h && h < 5) {
+	      r = 0;
+	      g = x;
+	      b = 1;
+	    } else if (5 <= h) {
+	      r = 1;
+	      g = 0;
+	      b = x;
+	    }
+
+	    vertices[i * 6 + 3] = r;
+	    vertices[i * 6 + 4] = g;
+	    vertices[i * 6 + 5] = b;
+	  }
+
+	  return vertices;
+	};
+
 
 /***/ }
 /******/ ])

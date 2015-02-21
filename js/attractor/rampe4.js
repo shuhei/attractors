@@ -1,7 +1,5 @@
 'use strict';
 
-var addColor = require('./add-color');
-
 module.exports = calc;
 
 // TODO: Figure out better parameters.
@@ -55,5 +53,5 @@ function calc(vertices, iterations, params) {
     vertices[i * 6 + 2] = z;
   }
 
-  return addColor(vertices, iterations);
+  return vertices;
 }

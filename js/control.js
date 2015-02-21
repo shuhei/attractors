@@ -1,6 +1,7 @@
 var DISTANCE_LOWER_BOUND = 0.1;
-var DISTANCE_UPPER_BOUND = 45;
-var ZOOM_SPEED = 0.000001;
+var DISTANCE_UPPER_BOUND = 10;
+var GESTURE_ZOOM_SPEED = 0.01;
+var WHEEL_ZOOM_SPEED = 0.01;
 var ROTATION_INERTIA = 0.9;
 var DISTANCE_INERTIA = 0.7;
 var MOUSE_TO_RADIAN = Math.PI / 300.0;
@@ -109,7 +110,7 @@ module.exports = function(container, initialDistance) {
     // mousewheel -> wheelDeltaY, wheel -> deltaY
     var deltaY = event.wheelDeltaY || event.deltaY || 0;
     event.preventDefault();
-    zoom(deltaY * 0.3);
+    zoom(deltaY * WHEEL_ZOOM_SPEED);
     return false;
   }
 
@@ -119,13 +120,13 @@ module.exports = function(container, initialDistance) {
 
   function onGestureChange(event) {
     var scale = event.scale / previousScale;
-    zoom(ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
+    zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
     previsousScale = event.scale;
   }
 
   function onGestureEnd(event) {
     var scale = event.scale / previousScale;
-    zoom(ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
+    zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
     previousScale = null;
   }
 
