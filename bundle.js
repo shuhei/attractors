@@ -95,9 +95,9 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var mat = __webpack_require__(12);
-	var createProgram = __webpack_require__(7);
-	var addColor = __webpack_require__(6);
+	var mat = __webpack_require__(16);
+	var createProgram = __webpack_require__(6);
+	var addColor = __webpack_require__(7);
 
 	module.exports = {
 	  init: init,
@@ -208,7 +208,7 @@
 	  acc[name] = document.getElementsByName(name + '-value')[0];
 	  return acc;
 	}, {});
-	var button = document.getElementsByName('update')[0];
+	var button = document.getElementsByName('randomize')[0];
 
 	var listeners = [];
 	var form = {
@@ -216,26 +216,26 @@
 	  onUpdate: onUpdate,
 	  set: set
 	};
-	updateData();
-	updateView();
+	fetchParams();
+	updateTexts();
 
 	paramNames.forEach(function(name) {
 	  fields[name].addEventListener('change', function() {
-	    updateData();
-	    updateView();
+	    fetchParams();
+	    updateTexts();
+	    notify();
 	  });
 	});
 
 	select.addEventListener('change', function() {
-	  updateData();
-	  updateView();
+	  fetchParams();
+	  updateTexts();
+	  notify();
 	});
 
 	button.addEventListener('click', function() {
-	  console.log(form.data);
-	  listeners.forEach(function(listener) {
-	    listener();
-	  });
+	  randomizeParams();
+	  notify();
 	});
 
 	module.exports = form;
@@ -245,11 +245,11 @@
 	  Object.keys(params).forEach(function(name) {
 	    fields[name].value = params[name];
 	  });
-	  updateData();
-	  updateView();
+	  fetchParams();
+	  updateTexts();
 	}
 
-	function updateData() {
+	function fetchParams() {
 	  var attractor = select.value;
 	  var params = paramNames.reduce(function(acc, name) {
 	    var field = fields[name];
@@ -262,7 +262,16 @@
 	  };
 	}
 
-	function updateView() {
+	function randomizeParams() {
+	  var amplitude = 3;
+	  var newParams = paramNames.reduce(function(acc, name) {
+	    acc[name] = Math.random() * amplitude * 2 - amplitude;
+	    return acc;
+	  }, {});
+	  set(select.value, newParams);
+	}
+
+	function updateTexts() {
 	  Object.keys(form.data.params).forEach(function(name, i) {
 	    paramValues[name].innerText = form.data.params[name];
 	  });
@@ -271,6 +280,12 @@
 	function onUpdate(listener) {
 	  listeners.push(listener);
 	};
+
+	function notify() {
+	  listeners.forEach(function(listener) {
+	    listener();
+	  });
+	}
 
 
 /***/ },
@@ -451,16 +466,67 @@
 	  rampe1: __webpack_require__(8),
 	  rampe3: __webpack_require__(9),
 	  rampe4: __webpack_require__(10),
-	  rampe6: __webpack_require__(36),
-	  rampe7: __webpack_require__(37),
-	  rampe8: __webpack_require__(38),
-	  pickover: __webpack_require__(39),
-	  kingsDream: __webpack_require__(11)
+	  rampe6: __webpack_require__(11),
+	  rampe7: __webpack_require__(12),
+	  rampe8: __webpack_require__(13),
+	  pickover: __webpack_require__(14),
+	  kingsDream: __webpack_require__(15)
 	};
 
 
 /***/ },
 /* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = createProgram;
+
+	function createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames) {
+	  var vert = compileShader(gl, gl.VERTEX_SHADER, vertSrc);
+	  var frag = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc);
+
+	  var program = gl.createProgram();
+	  gl.attachShader(program, vert);
+	  gl.attachShader(program, frag);
+
+	  var attributes = {};
+	  attributeNames.forEach(function(name, location) {
+	    gl.bindAttribLocation(program, location, name);
+	    console.log('attribute location', name, location);
+	    attributes[name] = location;
+	  });
+
+	  gl.linkProgram(program);
+	  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+	    throw new Error('Error linking program: ' + gl.getProgramInfoLog(program));
+	  }
+
+	  var uniforms = {};
+	  uniformNames.forEach(function(name) {
+	    var location = gl.getUniformLocation(program, name);
+	    console.log('uniform location', name, location);
+	    uniforms[name] = location;
+	  });
+
+	  return {
+	    program: program,
+	    uniforms: uniforms,
+	    attributes: attributes
+	  };
+	}
+
+	function compileShader(gl, type, src) {
+	  var shader = gl.createShader(type);
+	  gl.shaderSource(shader, src);
+	  gl.compileShader(shader);
+	  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+	    throw new Error('Error compiling shader: ' + gl.getShaderInfoLog(shader));
+	  }
+	  return shader;
+	}
+
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -512,57 +578,6 @@
 
 	  return vertices;
 	};
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = createProgram;
-
-	function createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames) {
-	  var vert = compileShader(gl, gl.VERTEX_SHADER, vertSrc);
-	  var frag = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc);
-
-	  var program = gl.createProgram();
-	  gl.attachShader(program, vert);
-	  gl.attachShader(program, frag);
-
-	  var attributes = {};
-	  attributeNames.forEach(function(name, location) {
-	    gl.bindAttribLocation(program, location, name);
-	    console.log('attribute location', name, location);
-	    attributes[name] = location;
-	  });
-
-	  gl.linkProgram(program);
-	  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-	    throw new Error('Error linking program: ' + gl.getProgramInfoLog(program));
-	  }
-
-	  var uniforms = {};
-	  uniformNames.forEach(function(name) {
-	    var location = gl.getUniformLocation(program, name);
-	    console.log('uniform location', name, location);
-	    uniforms[name] = location;
-	  });
-
-	  return {
-	    program: program,
-	    uniforms: uniforms,
-	    attributes: attributes
-	  };
-	}
-
-	function compileShader(gl, type, src) {
-	  var shader = gl.createShader(type);
-	  gl.shaderSource(shader, src);
-	  gl.compileShader(shader);
-	  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-	    throw new Error('Error compiling shader: ' + gl.getShaderInfoLog(shader));
-	  }
-	  return shader;
-	}
 
 
 /***/ },
@@ -770,6 +785,267 @@
 
 	// TODO: Figure out better parameters.
 	calc.defaults = {
+	  a: 1.5,
+	  b: -3.5,
+	  c: -0.765145,
+	  d: -0.744728,
+	  e: -2.5,
+	  f: -1.83
+	};
+
+	// Rampe6
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.d;
+	  var e = params.e;
+	  var f = params.f;
+
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
+	    yNew = x * Math.sin(c * y) + Math.cos(d * z);
+	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+
+	  for (i = 0; i < iterations; i++) {
+	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
+	    yNew = x * Math.sin(c * y) + Math.cos(d * z);
+	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+
+	    vertices[i * 6] = x;
+	    vertices[i * 6 + 1] = y;
+	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
+	  }
+
+	  return vertices;
+	}
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = {
+	  a: 1.5,
+	  b: -3.5,
+	  c: -0.765145,
+	  d: -0.744728,
+	  e: -2.5,
+	  f: -1.83
+	};
+
+	// Rampe7
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.d;
+	  var e = params.e;
+	  var f = params.f;
+
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
+	    yNew = x * Math.cos(c * y) + Math.sin(d * z);
+	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+
+	  for (i = 0; i < iterations; i++) {
+	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
+	    yNew = x * Math.cos(c * y) + Math.sin(d * z);
+	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+
+	    vertices[i * 6] = x;
+	    vertices[i * 6 + 1] = y;
+	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
+	  }
+
+	  return vertices;
+	}
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = {
+	  a: 1.5,
+	  b: -3.5,
+	  c: -0.765145
+	};
+
+	// Rampe8
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = z * Math.sin(a * x) - Math.cos(y);
+	    yNew = x * Math.cos(b * y) + Math.sin(z);
+	    zNew = y * Math.sin(c * z) - Math.cos(x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+
+	  for (i = 0; i < iterations; i++) {
+	    xNew = z * Math.sin(a * x) - Math.cos(y);
+	    yNew = x * Math.cos(b * y) + Math.sin(z);
+	    zNew = y * Math.sin(c * z) - Math.cos(x);
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+
+	    vertices[i * 6] = x;
+	    vertices[i * 6 + 1] = y;
+	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
+	  }
+
+	  return vertices;
+	}
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = {
+	  a: 0.484,
+	  b: -2.169,
+	  c: -0.722,
+	  d: -1.305,
+	  e: -2.106
+	};
+
+	// Pickover
+	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
+	function calc(vertices, iterations, params) {
+	  var a = params.a;
+	  var b = params.b;
+	  var c = params.c;
+	  var d = params.d;
+	  var e = params.e;
+
+	  var x = 0.1;
+	  var y = 0.1;
+	  var z = 0.1;
+
+	  var xNew;
+	  var yNew;
+	  var zNew;
+	  var i;
+
+	  for (i = 0; i < 100; i++) {
+	    xNew = Math.sin(a * x) - z * Math.cos(b * x);
+	    yNew = z * Math.sin(c * x) - Math.cos(d * y);
+	    zNew = e * Math.sin(x)
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+	  }
+
+	  for (i = 0; i < iterations; i++) {
+	    xNew = Math.sin(a * x) - z * Math.cos(b * x);
+	    yNew = z * Math.sin(c * x) - Math.cos(d * y);
+	    zNew = e * Math.sin(x)
+	    x = xNew;
+	    y = yNew;
+	    z = zNew;
+
+	    vertices[i * 6] = x;
+	    vertices[i * 6 + 1] = y;
+	    vertices[i * 6 + 2] = z;
+
+	    // Glitch
+	    // a = vertices[i * 6 + 5];
+	    // b = vertices[i * 6 + 5];
+	  }
+
+	  return vertices;
+	}
+
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = calc;
+
+	// TODO: Figure out better parameters.
+	calc.defaults = {
 	  a: -0.966918,
 	  b: 2.879879,
 	  c: 0.966918,
@@ -828,37 +1104,37 @@
 
 
 /***/ },
-/* 12 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  create: __webpack_require__(13)
-	  , clone: __webpack_require__(14)
-	  , copy: __webpack_require__(15)
-	  , identity: __webpack_require__(16)
-	  , transpose: __webpack_require__(17)
-	  , invert: __webpack_require__(18)
-	  , adjoint: __webpack_require__(19)
-	  , determinant: __webpack_require__(20)
-	  , multiply: __webpack_require__(21)
-	  , translate: __webpack_require__(22)
-	  , scale: __webpack_require__(23)
-	  , rotate: __webpack_require__(24)
-	  , rotateX: __webpack_require__(25)
-	  , rotateY: __webpack_require__(26)
-	  , rotateZ: __webpack_require__(27)
-	  , fromRotationTranslation: __webpack_require__(28)
-	  , fromQuat: __webpack_require__(29)
-	  , frustum: __webpack_require__(30)
-	  , perspective: __webpack_require__(31)
-	  , perspectiveFromFieldOfView: __webpack_require__(32)
-	  , ortho: __webpack_require__(33)
-	  , lookAt: __webpack_require__(34)
-	  , str: __webpack_require__(35)
+	  create: __webpack_require__(17)
+	  , clone: __webpack_require__(18)
+	  , copy: __webpack_require__(19)
+	  , identity: __webpack_require__(20)
+	  , transpose: __webpack_require__(21)
+	  , invert: __webpack_require__(22)
+	  , adjoint: __webpack_require__(23)
+	  , determinant: __webpack_require__(24)
+	  , multiply: __webpack_require__(25)
+	  , translate: __webpack_require__(26)
+	  , scale: __webpack_require__(27)
+	  , rotate: __webpack_require__(28)
+	  , rotateX: __webpack_require__(29)
+	  , rotateY: __webpack_require__(30)
+	  , rotateZ: __webpack_require__(31)
+	  , fromRotationTranslation: __webpack_require__(32)
+	  , fromQuat: __webpack_require__(33)
+	  , frustum: __webpack_require__(34)
+	  , perspective: __webpack_require__(35)
+	  , perspectiveFromFieldOfView: __webpack_require__(36)
+	  , ortho: __webpack_require__(37)
+	  , lookAt: __webpack_require__(38)
+	  , str: __webpack_require__(39)
 	}
 
 /***/ },
-/* 13 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = create;
@@ -890,7 +1166,7 @@
 	};
 
 /***/ },
-/* 14 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = clone;
@@ -923,7 +1199,7 @@
 	};
 
 /***/ },
-/* 15 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = copy;
@@ -956,7 +1232,7 @@
 	};
 
 /***/ },
-/* 16 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = identity;
@@ -988,7 +1264,7 @@
 	};
 
 /***/ },
-/* 17 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = transpose;
@@ -1042,7 +1318,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = invert;
@@ -1102,7 +1378,7 @@
 	};
 
 /***/ },
-/* 19 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = adjoint;
@@ -1140,7 +1416,7 @@
 	};
 
 /***/ },
-/* 20 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = determinant;
@@ -1175,7 +1451,7 @@
 	};
 
 /***/ },
-/* 21 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = multiply;
@@ -1222,7 +1498,7 @@
 	};
 
 /***/ },
-/* 22 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = translate;
@@ -1265,7 +1541,7 @@
 	};
 
 /***/ },
-/* 23 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = scale;
@@ -1301,7 +1577,7 @@
 	};
 
 /***/ },
-/* 24 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotate;
@@ -1370,7 +1646,7 @@
 	};
 
 /***/ },
-/* 25 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateX;
@@ -1419,7 +1695,7 @@
 	};
 
 /***/ },
-/* 26 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateY;
@@ -1468,7 +1744,7 @@
 	};
 
 /***/ },
-/* 27 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateZ;
@@ -1517,7 +1793,7 @@
 	};
 
 /***/ },
-/* 28 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromRotationTranslation;
@@ -1575,7 +1851,7 @@
 	};
 
 /***/ },
-/* 29 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromQuat;
@@ -1627,7 +1903,7 @@
 	};
 
 /***/ },
-/* 30 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = frustum;
@@ -1668,7 +1944,7 @@
 	};
 
 /***/ },
-/* 31 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspective;
@@ -1706,7 +1982,7 @@
 	};
 
 /***/ },
-/* 32 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspectiveFromFieldOfView;
@@ -1752,7 +2028,7 @@
 
 
 /***/ },
-/* 33 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = ortho;
@@ -1793,10 +2069,10 @@
 	};
 
 /***/ },
-/* 34 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var identity = __webpack_require__(16);
+	var identity = __webpack_require__(20);
 
 	module.exports = lookAt;
 
@@ -1888,7 +2164,7 @@
 	};
 
 /***/ },
-/* 35 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = str;
@@ -1905,267 +2181,6 @@
 	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' + 
 	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
 	};
-
-/***/ },
-/* 36 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = calc;
-
-	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
-	};
-
-	// Rampe6
-	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
-
-	  var x = 0.1;
-	  var y = 0.1;
-	  var z = 0.1;
-
-	  var xNew;
-	  var yNew;
-	  var zNew;
-	  var i;
-
-	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	  }
-
-	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-
-	    vertices[i * 6] = x;
-	    vertices[i * 6 + 1] = y;
-	    vertices[i * 6 + 2] = z;
-
-	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
-	  }
-
-	  return vertices;
-	}
-
-
-/***/ },
-/* 37 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = calc;
-
-	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
-	};
-
-	// Rampe7
-	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
-
-	  var x = 0.1;
-	  var y = 0.1;
-	  var z = 0.1;
-
-	  var xNew;
-	  var yNew;
-	  var zNew;
-	  var i;
-
-	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.cos(c * y) + Math.sin(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	  }
-
-	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.cos(c * y) + Math.sin(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-
-	    vertices[i * 6] = x;
-	    vertices[i * 6 + 1] = y;
-	    vertices[i * 6 + 2] = z;
-
-	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
-	  }
-
-	  return vertices;
-	}
-
-
-/***/ },
-/* 38 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = calc;
-
-	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145
-	};
-
-	// Rampe8
-	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-
-	  var x = 0.1;
-	  var y = 0.1;
-	  var z = 0.1;
-
-	  var xNew;
-	  var yNew;
-	  var zNew;
-	  var i;
-
-	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(y);
-	    yNew = x * Math.cos(b * y) + Math.sin(z);
-	    zNew = y * Math.sin(c * z) - Math.cos(x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	  }
-
-	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(y);
-	    yNew = x * Math.cos(b * y) + Math.sin(z);
-	    zNew = y * Math.sin(c * z) - Math.cos(x);
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-
-	    vertices[i * 6] = x;
-	    vertices[i * 6 + 1] = y;
-	    vertices[i * 6 + 2] = z;
-
-	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
-	  }
-
-	  return vertices;
-	}
-
-
-/***/ },
-/* 39 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = calc;
-
-	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 0.484,
-	  b: -2.169,
-	  c: -0.722,
-	  d: -1.305,
-	  e: -2.106
-	};
-
-	// Pickover
-	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-
-	  var x = 0.1;
-	  var y = 0.1;
-	  var z = 0.1;
-
-	  var xNew;
-	  var yNew;
-	  var zNew;
-	  var i;
-
-	  for (i = 0; i < 100; i++) {
-	    xNew = Math.sin(a * x) - z * Math.cos(b * x);
-	    yNew = z * Math.sin(c * x) - Math.cos(d * y);
-	    zNew = e * Math.sin(x)
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-	  }
-
-	  for (i = 0; i < iterations; i++) {
-	    xNew = Math.sin(a * x) - z * Math.cos(b * x);
-	    yNew = z * Math.sin(c * x) - Math.cos(d * y);
-	    zNew = e * Math.sin(x)
-	    x = xNew;
-	    y = yNew;
-	    z = zNew;
-
-	    vertices[i * 6] = x;
-	    vertices[i * 6 + 1] = y;
-	    vertices[i * 6 + 2] = z;
-
-	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
-	  }
-
-	  return vertices;
-	}
-
-
 
 /***/ }
 /******/ ])
