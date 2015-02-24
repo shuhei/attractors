@@ -48,7 +48,7 @@ function calc(vertices, iterations, params) {
 
     // Glitch
     // a = vertices[i * 6 + 5];
-    // b = vertices[i * 6 + 5];
+    b = vertices[i * 6 + 5];
   }
 
   return vertices;

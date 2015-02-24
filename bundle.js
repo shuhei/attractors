@@ -46,20 +46,25 @@
 
 	var app = __webpack_require__(1);
 	var fit = __webpack_require__(2);
-	var form = __webpack_require__(3);
 	var control = __webpack_require__(4);
 	var attractors = __webpack_require__(5);
 
-	var INITIAL_DISTANCE = 6;
-	var DEFAULT_ATTRACTOR = 'kingsDream';
+	// Store.
+	var INITIAL_ATTRACTOR = 'kingsDream';
+	var store = __webpack_require__(40);
+	store.setAttractor(INITIAL_ATTRACTOR);
+	store.setParams(attractors[INITIAL_ATTRACTOR].defaults);
+	store.onUpdate(update);
 
+	// TODO: Initialize form.
+	var form = __webpack_require__(3);
+
+	// Canvas.
+	var INITIAL_DISTANCE = 6;
 	var canvas = document.createElement('canvas');
 	document.body.appendChild(canvas);
 	fit(canvas);
 	var getStates = control(canvas, INITIAL_DISTANCE);
-
-	form.set(DEFAULT_ATTRACTOR, attractors[DEFAULT_ATTRACTOR].defaults);
-	console.log(form.data);
 
 	canvas.addEventListener('webglcontextlost', function(e) {
 	  console.log('context lost', e);
@@ -70,17 +75,15 @@
 	  console.log('context restored', e);
 	}, false);
 
+	// GL.
 	var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 	app.init(gl);
 	update();
 	draw();
 
-	form.onUpdate(update);
-
 	function update() {
-	  var data = form.data;
-	  var attractor = attractors[data.attractor];
-	  var args = [gl, attractor].concat(data.params);
+	  var attractor = attractors[store.attractor];
+	  var args = [gl, attractor].concat(store.params);
 	  app.update.apply(null, args);
 	}
 
@@ -198,7 +201,11 @@
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var store = __webpack_require__(40);
+	var attractors = __webpack_require__(5);
+
 	var paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
+
 	var select = document.getElementsByName('attractor')[0];
 	var fields = paramNames.reduce(function(acc, name) {
 	  acc[name] = document.getElementsByName(name)[0];
@@ -210,82 +217,60 @@
 	}, {});
 	var button = document.getElementsByName('randomize')[0];
 
-	var listeners = [];
-	var form = {
-	  data: null,
-	  onUpdate: onUpdate,
-	  set: set
-	};
-	fetchParams();
-	updateTexts();
-
+	// Add DOM event handlers.
 	paramNames.forEach(function(name) {
 	  fields[name].addEventListener('change', function() {
-	    fetchParams();
-	    updateTexts();
-	    notify();
+	    var params = paramNames.reduce(function(acc, name) {
+	      var field = fields[name];
+	      acc[name] = parseFloat(field.value, 10);
+	      return acc;
+	    }, {});
+	    store.setParams(params);
 	  });
 	});
 
 	select.addEventListener('change', function() {
-	  fetchParams();
-	  updateTexts();
-	  notify();
+	  store.setAttractor(select.value);
 	});
 
 	button.addEventListener('click', function() {
-	  randomizeParams();
-	  notify();
+	  store.randomizeParams();
 	});
 
-	module.exports = form;
+	// Render.
+	render();
 
-	function set(attractor, params) {
-	  select.value = attractor;
-	  Object.keys(params).forEach(function(name) {
-	    fields[name].value = params[name];
+	store.onUpdate(function() {
+	  render();
+	});
+
+	function render() {
+	  // Update select.
+	  select.value = store.attractor;
+
+	  // Update range sliders.
+	  Object.keys(store.params).forEach(function(name) {
+	    fields[name].value = store.params[name];
 	  });
-	  fetchParams();
+
 	  updateTexts();
 	}
 
-	function fetchParams() {
-	  var attractor = select.value;
-	  var params = paramNames.reduce(function(acc, name) {
-	    var field = fields[name];
-	    acc[name] = parseFloat(field.value, 10);
-	    return acc;
-	  }, {});
-	  form.data = {
-	    attractor: attractor,
-	    params: params
-	  };
-	}
-
-	function randomizeParams() {
-	  var amplitude = 3;
-	  var newParams = paramNames.reduce(function(acc, name) {
-	    acc[name] = Math.random() * amplitude * 2 - amplitude;
-	    return acc;
-	  }, {});
-	  set(select.value, newParams);
-	}
 
 	function updateTexts() {
-	  Object.keys(form.data.params).forEach(function(name, i) {
-	    paramValues[name].innerText = form.data.params[name];
+	  Object.keys(store.params).forEach(function(name) {
+	    var value = store.params[name];
+	    paramValues[name].textContent = value;
 	  });
 	}
 
-	function onUpdate(listener) {
-	  listeners.push(listener);
-	};
-
-	function notify() {
-	  listeners.forEach(function(listener) {
-	    listener();
-	  });
+	function findAttractorName(attractor) {
+	  return Object.keys(attractors).filter(function(name) {
+	    return attractors[name] === attractor;
+	  })[0];
 	}
+
+	module.exports = {};
 
 
 /***/ },
@@ -834,7 +819,7 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
+	    a = vertices[i * 6 + 5];
 	    // b = vertices[i * 6 + 5];
 	  }
 
@@ -901,7 +886,7 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
+	    a = vertices[i * 6 + 5];
 	    // b = vertices[i * 6 + 5];
 	  }
 
@@ -963,7 +948,7 @@
 
 	    // Glitch
 	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    b = vertices[i * 6 + 5];
 	  }
 
 	  return vertices;
@@ -1027,7 +1012,7 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
+	    a = vertices[i * 6 + 5];
 	    // b = vertices[i * 6 + 5];
 	  }
 
@@ -1096,7 +1081,7 @@
 
 	    // Glitch
 	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    b = vertices[i * 6 + 5];
 	  }
 
 	  return vertices;
@@ -2181,6 +2166,60 @@
 	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' + 
 	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
 	};
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var store = {
+	  // Data
+	  attractor: null,
+	  params: null,
+
+	  // Event
+	  onUpdate: onUpdate,
+
+	  // Actions
+	  setAttractor: setAttractor,
+	  setParams: setParams,
+	  randomizeParams: randomizeParams
+	};
+	module.exports = store;
+
+	var listeners = [];
+
+	function onUpdate(listener) {
+	  listeners.push(listener);
+	}
+
+	function setAttractor(attractor) {
+	  store.attractor = attractor;
+	  notify();
+	}
+
+	function setParams(params) {
+	  store.params = params;
+	  notify();
+	}
+
+	function randomizeParams() {
+	  var amplitude = 3;
+	  // TODO: Get param names from attractor.
+	  var newParams = ['a', 'b', 'c', 'd', 'e', 'f'].reduce(function(acc, name) {
+	    acc[name] = Math.random() * amplitude * 2 - amplitude;
+	    return acc;
+	  }, {});
+
+	  setParams(newParams);
+	}
+
+
+	function notify() {
+	  listeners.forEach(function(listener) {
+	    listener();
+	  });
+	}
+
 
 /***/ }
 /******/ ])

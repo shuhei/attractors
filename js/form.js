@@ -1,4 +1,8 @@
+var store = require('./store');
+var attractors = require('./attractor');
+
 var paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
+
 var select = document.getElementsByName('attractor')[0];
 var fields = paramNames.reduce(function(acc, name) {
   acc[name] = document.getElementsByName(name)[0];
@@ -10,79 +14,57 @@ var paramValues = paramNames.reduce(function(acc, name) {
 }, {});
 var button = document.getElementsByName('randomize')[0];
 
-var listeners = [];
-var form = {
-  data: null,
-  onUpdate: onUpdate,
-  set: set
-};
-fetchParams();
-updateTexts();
-
+// Add DOM event handlers.
 paramNames.forEach(function(name) {
   fields[name].addEventListener('change', function() {
-    fetchParams();
-    updateTexts();
-    notify();
+    var params = paramNames.reduce(function(acc, name) {
+      var field = fields[name];
+      acc[name] = parseFloat(field.value, 10);
+      return acc;
+    }, {});
+    store.setParams(params);
   });
 });
 
 select.addEventListener('change', function() {
-  fetchParams();
-  updateTexts();
-  notify();
+  store.setAttractor(select.value);
 });
 
 button.addEventListener('click', function() {
-  randomizeParams();
-  notify();
+  store.randomizeParams();
 });
 
-module.exports = form;
+// Render.
+render();
 
-function set(attractor, params) {
-  select.value = attractor;
-  Object.keys(params).forEach(function(name) {
-    fields[name].value = params[name];
+store.onUpdate(function() {
+  render();
+});
+
+function render() {
+  // Update select.
+  select.value = store.attractor;
+
+  // Update range sliders.
+  Object.keys(store.params).forEach(function(name) {
+    fields[name].value = store.params[name];
   });
-  fetchParams();
+
   updateTexts();
 }
 
-function fetchParams() {
-  var attractor = select.value;
-  var params = paramNames.reduce(function(acc, name) {
-    var field = fields[name];
-    acc[name] = parseFloat(field.value, 10);
-    return acc;
-  }, {});
-  form.data = {
-    attractor: attractor,
-    params: params
-  };
-}
-
-function randomizeParams() {
-  var amplitude = 3;
-  var newParams = paramNames.reduce(function(acc, name) {
-    acc[name] = Math.random() * amplitude * 2 - amplitude;
-    return acc;
-  }, {});
-  set(select.value, newParams);
-}
 
 function updateTexts() {
-  Object.keys(form.data.params).forEach(function(name, i) {
-    paramValues[name].innerText = form.data.params[name];
+  Object.keys(store.params).forEach(function(name) {
+    var value = store.params[name];
+    paramValues[name].textContent = value;
   });
 }
 
-function onUpdate(listener) {
-  listeners.push(listener);
-};
-
-function notify() {
-  listeners.forEach(function(listener) {
-    listener();
-  });
+function findAttractorName(attractor) {
+  return Object.keys(attractors).filter(function(name) {
+    return attractors[name] === attractor;
+  })[0];
 }
+
+module.exports = {};
