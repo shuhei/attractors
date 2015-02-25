@@ -1,3 +1,5 @@
+var attractors = require('./attractor');
+
 var store = {
   // Data
   attractor: null,
@@ -8,7 +10,7 @@ var store = {
 
   // Actions
   setAttractor: setAttractor,
-  setParams: setParams,
+  setParam: setParam,
   randomizeParams: randomizeParams
 };
 module.exports = store;
@@ -21,23 +23,27 @@ function onUpdate(listener) {
 
 function setAttractor(attractor) {
   store.attractor = attractor;
+  var defaults = attractors[attractor].defaults;
+  store.params = Object.keys(defaults).reduce(function(acc, name) {
+    acc[name] = normalize(defaults[name]);
+    return acc;
+  }, {});
   notify();
 }
 
-function setParams(params) {
-  store.params = params;
+function setParam(name, value) {
+  store.params[name] = value;
   notify();
 }
 
 function randomizeParams() {
   var amplitude = 3;
-  // TODO: Get param names from attractor.
-  var newParams = ['a', 'b', 'c', 'd', 'e', 'f'].reduce(function(acc, name) {
-    acc[name] = Math.random() * amplitude * 2 - amplitude;
+  store.params = Object.keys(store.params).reduce(function(acc, name) {
+    var value = Math.random() * amplitude * 2 - amplitude;
+    acc[name] = normalize(value);
     return acc;
   }, {});
-
-  setParams(newParams);
+  notify();
 }
 
 
@@ -45,4 +51,8 @@ function notify() {
   listeners.forEach(function(listener) {
     listener();
   });
+}
+
+function normalize(value) {
+  return Math.floor(value * 1000) / 1000;
 }

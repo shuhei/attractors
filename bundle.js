@@ -46,18 +46,17 @@
 
 	var app = __webpack_require__(1);
 	var fit = __webpack_require__(2);
-	var control = __webpack_require__(4);
-	var attractors = __webpack_require__(5);
+	var control = __webpack_require__(3);
+	var attractors = __webpack_require__(6);
 
 	// Store.
 	var INITIAL_ATTRACTOR = 'kingsDream';
-	var store = __webpack_require__(40);
+	var store = __webpack_require__(4);
 	store.setAttractor(INITIAL_ATTRACTOR);
-	store.setParams(attractors[INITIAL_ATTRACTOR].defaults);
 	store.onUpdate(update);
 
 	// TODO: Initialize form.
-	var form = __webpack_require__(3);
+	var form = __webpack_require__(5);
 
 	// Canvas.
 	var INITIAL_DISTANCE = 6;
@@ -98,9 +97,9 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var mat = __webpack_require__(16);
-	var createProgram = __webpack_require__(6);
-	var addColor = __webpack_require__(7);
+	var mat = __webpack_require__(17);
+	var createProgram = __webpack_require__(7);
+	var addColor = __webpack_require__(8);
 
 	module.exports = {
 	  init: init,
@@ -199,82 +198,6 @@
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var store = __webpack_require__(40);
-	var attractors = __webpack_require__(5);
-
-	var paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
-
-	var select = document.getElementsByName('attractor')[0];
-	var fields = paramNames.reduce(function(acc, name) {
-	  acc[name] = document.getElementsByName(name)[0];
-	  return acc;
-	}, {});
-	var paramValues = paramNames.reduce(function(acc, name) {
-	  acc[name] = document.getElementsByName(name + '-value')[0];
-	  return acc;
-	}, {});
-	var button = document.getElementsByName('randomize')[0];
-
-	// Add DOM event handlers.
-	paramNames.forEach(function(name) {
-	  fields[name].addEventListener('change', function() {
-	    var params = paramNames.reduce(function(acc, name) {
-	      var field = fields[name];
-	      acc[name] = parseFloat(field.value, 10);
-	      return acc;
-	    }, {});
-	    store.setParams(params);
-	  });
-	});
-
-	select.addEventListener('change', function() {
-	  store.setAttractor(select.value);
-	});
-
-	button.addEventListener('click', function() {
-	  store.randomizeParams();
-	});
-
-	// Render.
-	render();
-
-	store.onUpdate(function() {
-	  render();
-	});
-
-	function render() {
-	  // Update select.
-	  select.value = store.attractor;
-
-	  // Update range sliders.
-	  Object.keys(store.params).forEach(function(name) {
-	    fields[name].value = store.params[name];
-	  });
-
-	  updateTexts();
-	}
-
-
-	function updateTexts() {
-	  Object.keys(store.params).forEach(function(name) {
-	    var value = store.params[name];
-	    paramValues[name].textContent = value;
-	  });
-	}
-
-	function findAttractorName(attractor) {
-	  return Object.keys(attractors).filter(function(name) {
-	    return attractors[name] === attractor;
-	  })[0];
-	}
-
-	module.exports = {};
-
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var DISTANCE_LOWER_BOUND = 0.1;
@@ -444,23 +367,161 @@
 
 
 /***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var attractors = __webpack_require__(6);
+
+	var store = {
+	  // Data
+	  attractor: null,
+	  params: null,
+
+	  // Event
+	  onUpdate: onUpdate,
+
+	  // Actions
+	  setAttractor: setAttractor,
+	  setParam: setParam,
+	  randomizeParams: randomizeParams
+	};
+	module.exports = store;
+
+	var listeners = [];
+
+	function onUpdate(listener) {
+	  listeners.push(listener);
+	}
+
+	function setAttractor(attractor) {
+	  store.attractor = attractor;
+	  var defaults = attractors[attractor].defaults;
+	  store.params = Object.keys(defaults).reduce(function(acc, name) {
+	    acc[name] = normalize(defaults[name]);
+	    return acc;
+	  }, {});
+	  notify();
+	}
+
+	function setParam(name, value) {
+	  store.params[name] = value;
+	  notify();
+	}
+
+	function randomizeParams() {
+	  var amplitude = 3;
+	  store.params = Object.keys(store.params).reduce(function(acc, name) {
+	    var value = Math.random() * amplitude * 2 - amplitude;
+	    acc[name] = normalize(value);
+	    return acc;
+	  }, {});
+	  notify();
+	}
+
+
+	function notify() {
+	  listeners.forEach(function(listener) {
+	    listener();
+	  });
+	}
+
+	function normalize(value) {
+	  return Math.floor(value * 1000) / 1000;
+	}
+
+
+/***/ },
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = {
-	  rampe1: __webpack_require__(8),
-	  rampe3: __webpack_require__(9),
-	  rampe4: __webpack_require__(10),
-	  rampe6: __webpack_require__(11),
-	  rampe7: __webpack_require__(12),
-	  rampe8: __webpack_require__(13),
-	  pickover: __webpack_require__(14),
-	  kingsDream: __webpack_require__(15)
-	};
+	var store = __webpack_require__(4);
+	var attractors = __webpack_require__(6);
+
+	var paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
+
+	var select = document.getElementsByName('attractor')[0];
+	var fields = paramNames.reduce(function(acc, name) {
+	  acc[name] = document.getElementsByName(name)[0];
+	  return acc;
+	}, {});
+	var displays = paramNames.reduce(function(acc, name) {
+	  acc[name] = document.getElementsByName(name + '-value')[0];
+	  return acc;
+	}, {});
+	var button = document.getElementsByName('randomize')[0];
+
+	// Add DOM event handlers.
+	paramNames.forEach(function(name) {
+	  var field = fields[name];
+	  field.addEventListener('change', function(e) {
+	    var value = parseFloat(field.value, 10);
+	    store.setParam(name, value);
+	  });
+	});
+
+	select.addEventListener('change', function() {
+	  store.setAttractor(select.value);
+	});
+
+	button.addEventListener('click', function() {
+	  store.randomizeParams();
+	});
+
+	// Render.
+	render();
+
+	store.onUpdate(function() {
+	  render();
+	});
+
+	function render() {
+	  // Update select.
+	  select.value = store.attractor;
+
+	  // Update range sliders and param display.
+	  paramNames.forEach(function(name) {
+	    var value = store.params[name];
+	    var field = fields[name];
+	    var display = displays[name];
+	    if (value === undefined) {
+	      field.value = 0;
+	      field.disabled = true;
+	      display.textContent = '';
+	    } else {
+	      field.value = value;
+	      field.disabled = false;
+	      display.textContent = value;
+	    }
+	  });
+	}
+
+	function findAttractorName(attractor) {
+	  return Object.keys(attractors).filter(function(name) {
+	    return attractors[name] === attractor;
+	  })[0];
+	}
+
+	module.exports = {};
 
 
 /***/ },
 /* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	  rampe1: __webpack_require__(9),
+	  rampe3: __webpack_require__(10),
+	  rampe4: __webpack_require__(11),
+	  rampe6: __webpack_require__(12),
+	  rampe7: __webpack_require__(13),
+	  rampe8: __webpack_require__(14),
+	  pickover: __webpack_require__(15),
+	  kingsDream: __webpack_require__(16)
+	};
+
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = createProgram;
@@ -511,7 +572,7 @@
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -566,7 +627,7 @@
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -633,7 +694,7 @@
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -691,7 +752,7 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
+	    a = vertices[i * 6 + 5];
 	    // b = vertices[i * 6 + 5];
 	  }
 
@@ -700,7 +761,7 @@
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -761,7 +822,7 @@
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -828,7 +889,7 @@
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -895,7 +956,7 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -956,7 +1017,7 @@
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1022,7 +1083,7 @@
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1089,37 +1150,37 @@
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = {
-	  create: __webpack_require__(17)
-	  , clone: __webpack_require__(18)
-	  , copy: __webpack_require__(19)
-	  , identity: __webpack_require__(20)
-	  , transpose: __webpack_require__(21)
-	  , invert: __webpack_require__(22)
-	  , adjoint: __webpack_require__(23)
-	  , determinant: __webpack_require__(24)
-	  , multiply: __webpack_require__(25)
-	  , translate: __webpack_require__(26)
-	  , scale: __webpack_require__(27)
-	  , rotate: __webpack_require__(28)
-	  , rotateX: __webpack_require__(29)
-	  , rotateY: __webpack_require__(30)
-	  , rotateZ: __webpack_require__(31)
-	  , fromRotationTranslation: __webpack_require__(32)
-	  , fromQuat: __webpack_require__(33)
-	  , frustum: __webpack_require__(34)
-	  , perspective: __webpack_require__(35)
-	  , perspectiveFromFieldOfView: __webpack_require__(36)
-	  , ortho: __webpack_require__(37)
-	  , lookAt: __webpack_require__(38)
-	  , str: __webpack_require__(39)
+	  create: __webpack_require__(18)
+	  , clone: __webpack_require__(19)
+	  , copy: __webpack_require__(20)
+	  , identity: __webpack_require__(21)
+	  , transpose: __webpack_require__(22)
+	  , invert: __webpack_require__(23)
+	  , adjoint: __webpack_require__(24)
+	  , determinant: __webpack_require__(25)
+	  , multiply: __webpack_require__(26)
+	  , translate: __webpack_require__(27)
+	  , scale: __webpack_require__(28)
+	  , rotate: __webpack_require__(29)
+	  , rotateX: __webpack_require__(30)
+	  , rotateY: __webpack_require__(31)
+	  , rotateZ: __webpack_require__(32)
+	  , fromRotationTranslation: __webpack_require__(33)
+	  , fromQuat: __webpack_require__(34)
+	  , frustum: __webpack_require__(35)
+	  , perspective: __webpack_require__(36)
+	  , perspectiveFromFieldOfView: __webpack_require__(37)
+	  , ortho: __webpack_require__(38)
+	  , lookAt: __webpack_require__(39)
+	  , str: __webpack_require__(40)
 	}
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = create;
@@ -1151,7 +1212,7 @@
 	};
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = clone;
@@ -1184,7 +1245,7 @@
 	};
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = copy;
@@ -1217,7 +1278,7 @@
 	};
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = identity;
@@ -1249,7 +1310,7 @@
 	};
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = transpose;
@@ -1303,7 +1364,7 @@
 	};
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = invert;
@@ -1363,7 +1424,7 @@
 	};
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = adjoint;
@@ -1401,7 +1462,7 @@
 	};
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = determinant;
@@ -1436,7 +1497,7 @@
 	};
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = multiply;
@@ -1483,7 +1544,7 @@
 	};
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = translate;
@@ -1526,7 +1587,7 @@
 	};
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = scale;
@@ -1562,7 +1623,7 @@
 	};
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotate;
@@ -1631,7 +1692,7 @@
 	};
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateX;
@@ -1680,7 +1741,7 @@
 	};
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateY;
@@ -1729,7 +1790,7 @@
 	};
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = rotateZ;
@@ -1778,7 +1839,7 @@
 	};
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromRotationTranslation;
@@ -1836,7 +1897,7 @@
 	};
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = fromQuat;
@@ -1888,7 +1949,7 @@
 	};
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = frustum;
@@ -1929,7 +1990,7 @@
 	};
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspective;
@@ -1967,7 +2028,7 @@
 	};
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = perspectiveFromFieldOfView;
@@ -2013,7 +2074,7 @@
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = ortho;
@@ -2054,10 +2115,10 @@
 	};
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var identity = __webpack_require__(20);
+	var identity = __webpack_require__(21);
 
 	module.exports = lookAt;
 
@@ -2149,7 +2210,7 @@
 	};
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = str;
@@ -2166,60 +2227,6 @@
 	                    a[8] + ', ' + a[9] + ', ' + a[10] + ', ' + a[11] + ', ' + 
 	                    a[12] + ', ' + a[13] + ', ' + a[14] + ', ' + a[15] + ')';
 	};
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var store = {
-	  // Data
-	  attractor: null,
-	  params: null,
-
-	  // Event
-	  onUpdate: onUpdate,
-
-	  // Actions
-	  setAttractor: setAttractor,
-	  setParams: setParams,
-	  randomizeParams: randomizeParams
-	};
-	module.exports = store;
-
-	var listeners = [];
-
-	function onUpdate(listener) {
-	  listeners.push(listener);
-	}
-
-	function setAttractor(attractor) {
-	  store.attractor = attractor;
-	  notify();
-	}
-
-	function setParams(params) {
-	  store.params = params;
-	  notify();
-	}
-
-	function randomizeParams() {
-	  var amplitude = 3;
-	  // TODO: Get param names from attractor.
-	  var newParams = ['a', 'b', 'c', 'd', 'e', 'f'].reduce(function(acc, name) {
-	    acc[name] = Math.random() * amplitude * 2 - amplitude;
-	    return acc;
-	  }, {});
-
-	  setParams(newParams);
-	}
-
-
-	function notify() {
-	  listeners.forEach(function(listener) {
-	    listener();
-	  });
-	}
-
 
 /***/ }
 /******/ ])

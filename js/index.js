@@ -7,7 +7,6 @@ var attractors = require('./attractor');
 var INITIAL_ATTRACTOR = 'kingsDream';
 var store = require('./store');
 store.setAttractor(INITIAL_ATTRACTOR);
-store.setParams(attractors[INITIAL_ATTRACTOR].defaults);
 store.onUpdate(update);
 
 // TODO: Initialize form.

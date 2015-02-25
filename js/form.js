@@ -8,7 +8,7 @@ var fields = paramNames.reduce(function(acc, name) {
   acc[name] = document.getElementsByName(name)[0];
   return acc;
 }, {});
-var paramValues = paramNames.reduce(function(acc, name) {
+var displays = paramNames.reduce(function(acc, name) {
   acc[name] = document.getElementsByName(name + '-value')[0];
   return acc;
 }, {});
@@ -16,13 +16,10 @@ var button = document.getElementsByName('randomize')[0];
 
 // Add DOM event handlers.
 paramNames.forEach(function(name) {
-  fields[name].addEventListener('change', function() {
-    var params = paramNames.reduce(function(acc, name) {
-      var field = fields[name];
-      acc[name] = parseFloat(field.value, 10);
-      return acc;
-    }, {});
-    store.setParams(params);
+  var field = fields[name];
+  field.addEventListener('change', function(e) {
+    var value = parseFloat(field.value, 10);
+    store.setParam(name, value);
   });
 });
 
@@ -45,19 +42,20 @@ function render() {
   // Update select.
   select.value = store.attractor;
 
-  // Update range sliders.
-  Object.keys(store.params).forEach(function(name) {
-    fields[name].value = store.params[name];
-  });
-
-  updateTexts();
-}
-
-
-function updateTexts() {
-  Object.keys(store.params).forEach(function(name) {
+  // Update range sliders and param display.
+  paramNames.forEach(function(name) {
     var value = store.params[name];
-    paramValues[name].textContent = value;
+    var field = fields[name];
+    var display = displays[name];
+    if (value === undefined) {
+      field.value = 0;
+      field.disabled = true;
+      display.textContent = '';
+    } else {
+      field.value = value;
+      field.disabled = false;
+      display.textContent = value;
+    }
   });
 }
 
