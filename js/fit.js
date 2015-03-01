@@ -1,4 +1,4 @@
-module.exports = function(canvas) {
+export default function(canvas) {
   window.addEventListener('resize', resize);
   resize();
 
@@ -6,4 +6,4 @@ module.exports = function(canvas) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   }
-};
+}

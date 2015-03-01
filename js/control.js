@@ -6,7 +6,7 @@ var ROTATION_INERTIA = 0.9;
 var DISTANCE_INERTIA = 0.7;
 var MOUSE_TO_RADIAN = Math.PI / 300.0;
 
-module.exports = function(container, initialDistance) {
+export default function(container, initialDistance) {
   var rotation = { x: 0, y: 0 };
   var target = { x: 0, y: 0 };
   var targetOnDown = { x: 0, y: 0};

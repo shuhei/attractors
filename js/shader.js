@@ -1,6 +1,4 @@
-module.exports = createProgram;
-
-function createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames) {
+export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames) {
   var vert = compileShader(gl, gl.VERTEX_SHADER, vertSrc);
   var frag = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc);
 
