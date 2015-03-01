@@ -38,8 +38,8 @@ function init(gl) {
   addColor(vertices, ITERATIONS);
 }
 
-function update(gl, attractor, params) {
-  attractor(vertices, ITERATIONS, params);
+function update(gl, attractor, params, useColor) {
+  attractor(vertices, ITERATIONS, params, useColor);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 }
 

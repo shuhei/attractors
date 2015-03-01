@@ -6,7 +6,7 @@ body {
   font-family: sans-serif;
 }
 
-#control {
+#form {
   position: absolute;
   top: 0;
   left: 0;
@@ -14,15 +14,20 @@ body {
   color: #fff;
 }
 
-#control label {
+#form label:first-child {
   display: inline-block;
   width: 0.6em;
 }
 
-#control input {
+#form input[type="range"] {
   width: 10em;
   text-align: right;
   margin-right: 1em;
+}
+
+.param__display {
+  display: inline-block;
+  width: 3em;
 }
 
 a {

@@ -14,7 +14,7 @@ calc.defaults = {
 
 // Rampe6
 // https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-function calc(vertices, iterations, params) {
+function calc(vertices, iterations, params, useColor) {
   var a = params.a;
   var b = params.b;
   var c = params.c;
@@ -53,8 +53,15 @@ function calc(vertices, iterations, params) {
     vertices[i * 6 + 2] = z;
 
     // Glitch
-    a = vertices[i * 6 + 5];
-    // b = vertices[i * 6 + 5];
+    if (useColor.a) {
+      a = vertices[i * 6 + 5];
+    }
+    if (useColor.b) {
+      b = vertices[i * 6 + 5];
+    }
+    if (useColor.c) {
+      c = vertices[i * 6 + 5];
+    }
   }
 
   return vertices;

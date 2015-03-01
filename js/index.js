@@ -1,16 +1,20 @@
-var app = require('./app');
-var fit = require('./fit');
-var control = require('./control');
-var attractors = require('./attractor');
+import app from './app';
+import fit from './fit';
+import control from './control';
+import attractors from './attractor';
+import React from 'react';
+import store from './store';
+import { Form } from './components/form';
 
 // Store.
 var INITIAL_ATTRACTOR = 'kingsDream';
-var store = require('./store');
 store.setAttractor(INITIAL_ATTRACTOR);
 store.onUpdate(update);
 
-// TODO: Initialize form.
-var form = require('./form');
+React.render(
+  <Form />,
+  document.getElementById('form')
+);
 
 // Canvas.
 var INITIAL_DISTANCE = 6;
@@ -36,8 +40,7 @@ draw();
 
 function update() {
   var attractor = attractors[store.attractor];
-  var args = [gl, attractor].concat(store.params);
-  app.update.apply(null, args);
+  app.update(gl, attractor, store.params, store.useColor);
 }
 
 function draw() {
