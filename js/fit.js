@@ -1,5 +1,5 @@
 export default function(canvas) {
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', resize, false);
   resize();
 
   function resize() {

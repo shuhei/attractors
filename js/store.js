@@ -1,4 +1,7 @@
-var attractors = require('./attractor');
+import attractors from './attractor';
+import { toAlphabet, toIndex } from './utils';
+
+const AMPLITUDE = 3;
 
 class Store {
   constructor() {
@@ -14,7 +17,7 @@ class Store {
 
   setAttractor(attractor) {
     this.attractor = attractor;
-    var defaults = attractors[attractor].defaults;
+    const defaults = attractors[attractor].defaults;
     this.params = defaults.map(normalize);
     this.useColor = defaults.map(() => false);
     this.useColor[1] = true;
@@ -32,11 +35,33 @@ class Store {
   }
 
   randomizeParams() {
-    var amplitude = 3;
     this.params = this.params.map(() => {
-      var value = Math.random() * amplitude * 2 - amplitude;
+      const value = Math.random() * AMPLITUDE * 2 - AMPLITUDE;
       return normalize(value);
     });
+    this.notify();
+  }
+
+  setState(state) {
+    const params = [];
+    const useColor = [];
+    for (let name of Object.keys(state)) {
+      const value = state[name];
+      if (name === 'attractor') {
+        this.attractor = value;
+      } else {
+        const index = toIndex(name);
+        if (value === 'blue') {
+          params[index] = 0;
+          useColor[index] = true;
+        } else {
+          params[index] = parseFloat(value, 10);
+          useColor[index] = false;
+        }
+      }
+    }
+    this.params = params;
+    this.useColor = useColor;
     this.notify();
   }
 
@@ -45,9 +70,24 @@ class Store {
       listener();
     });
   }
+
+  serialize() {
+    const params = {
+      attractor: this.attractor
+    };
+    this.params.forEach((value, index) => {
+      params[toAlphabet(index)] = value;
+    });
+    this.useColor.forEach((value, index) => {
+      if (value) {
+        params[toAlphabet(index)] = 'blue';
+      }
+    });
+    return params;
+  }
 }
 
-var store = new Store();
+const store = new Store();
 export default store;
 
 function normalize(value) {

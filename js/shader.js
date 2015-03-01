@@ -1,13 +1,13 @@
 export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames) {
-  var vert = compileShader(gl, gl.VERTEX_SHADER, vertSrc);
-  var frag = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc);
+  const vert = compileShader(gl, gl.VERTEX_SHADER, vertSrc);
+  const frag = compileShader(gl, gl.FRAGMENT_SHADER, fragSrc);
 
-  var program = gl.createProgram();
+  const program = gl.createProgram();
   gl.attachShader(program, vert);
   gl.attachShader(program, frag);
 
-  var attributes = {};
-  attributeNames.forEach(function(name, location) {
+  const attributes = {};
+  attributeNames.forEach((name, location) => {
     gl.bindAttribLocation(program, location, name);
     console.log('attribute location', name, location);
     attributes[name] = location;
@@ -19,7 +19,7 @@ export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attrib
   }
 
   var uniforms = {};
-  uniformNames.forEach(function(name) {
+  uniformNames.forEach((name) => {
     var location = gl.getUniformLocation(program, name);
     console.log('uniform location', name, location);
     uniforms[name] = location;
@@ -33,7 +33,7 @@ export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attrib
 }
 
 function compileShader(gl, type, src) {
-  var shader = gl.createShader(type);
+  const shader = gl.createShader(type);
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {

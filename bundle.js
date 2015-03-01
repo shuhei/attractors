@@ -48,6 +48,10 @@
 
 	var _babelHelpers = __webpack_require__(7)["default"];
 
+	var qs = _babelHelpers.interopRequire(__webpack_require__(192));
+
+	var React = _babelHelpers.interopRequire(__webpack_require__(8));
+
 	var app = _babelHelpers.interopRequire(__webpack_require__(1));
 
 	var fit = _babelHelpers.interopRequire(__webpack_require__(2));
@@ -56,16 +60,27 @@
 
 	var attractors = _babelHelpers.interopRequire(__webpack_require__(6));
 
-	var React = _babelHelpers.interopRequire(__webpack_require__(8));
-
 	var store = _babelHelpers.interopRequire(__webpack_require__(4));
 
 	var Form = __webpack_require__(5).Form;
 
-	// Store.
 	var INITIAL_ATTRACTOR = "kingsDream";
-	store.setAttractor(INITIAL_ATTRACTOR);
+
+	// Store.
+	if (window.location.search) {
+	  var state = qs.parse(window.location.search.slice(1));
+	  store.setState(state);
+	} else {
+	  store.setAttractor(INITIAL_ATTRACTOR);
+	}
+
 	store.onUpdate(update);
+
+	window.addEventListener("popstate", function (e) {
+	  if (e.state) {
+	    store.setState(e.state);
+	  }
+	}, false);
 
 	React.render(React.createElement(Form, null), document.getElementById("form"));
 
@@ -92,6 +107,12 @@
 	draw();
 
 	function update() {
+	  var state = store.serialize();
+	  var query = "?" + qs.stringify(state);
+	  if (window.location.search !== query) {
+	    window.history.pushState(state, query.slice(1), query);
+	  }
+
 	  var attractor = attractors[store.attractor];
 	  app.update(gl, attractor, store.params, store.useColor);
 	}
@@ -108,9 +129,13 @@
 
 	"use strict";
 
-	var mat = __webpack_require__(20);
-	var createProgram = __webpack_require__(9);
-	var addColor = __webpack_require__(10);
+	var _babelHelpers = __webpack_require__(7)["default"];
+
+	var mat = _babelHelpers.interopRequire(__webpack_require__(20));
+
+	var createProgram = _babelHelpers.interopRequire(__webpack_require__(9));
+
+	var addColor = _babelHelpers.interopRequire(__webpack_require__(10));
 
 	module.exports = {
 	  init: init,
@@ -120,6 +145,8 @@
 
 	var ITERATIONS = 100000;
 	var ROTATION_TIME = 100000;
+	var ATTRIBUTE_NAMES = ["position", "color"];
+	var UNIFORM_NAMES = ["mvp", "alpha"];
 
 	var program;
 	var buffer;
@@ -131,9 +158,7 @@
 	  // Create shaders and program.
 	  var vertSrc = getScript("shader-vert");
 	  var fragSrc = getScript("shader-frag");
-	  var attributeNames = ["position", "color"];
-	  var uniformNames = ["mvp", "alpha"];
-	  program = createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames);
+	  program = createProgram(gl, vertSrc, fragSrc, UNIFORM_NAMES, ATTRIBUTE_NAMES);
 
 	  // Create buffer.
 	  buffer = gl.createBuffer();
@@ -198,7 +223,7 @@
 	"use strict";
 
 	module.exports = function (canvas) {
-	  window.addEventListener("resize", resize);
+	  window.addEventListener("resize", resize, false);
 	  resize();
 
 	  function resize() {
@@ -386,7 +411,16 @@
 
 	var _babelHelpers = __webpack_require__(7)["default"];
 
-	var attractors = __webpack_require__(6);
+	var _core = __webpack_require__(21)["default"];
+
+	var attractors = _babelHelpers.interopRequire(__webpack_require__(6));
+
+	var _utils = __webpack_require__(191);
+
+	var toAlphabet = _utils.toAlphabet;
+	var toIndex = _utils.toIndex;
+
+	var AMPLITUDE = 3;
 
 	var Store = (function () {
 	  function Store() {
@@ -438,11 +472,58 @@
 	    },
 	    randomizeParams: {
 	      value: function randomizeParams() {
-	        var amplitude = 3;
 	        this.params = this.params.map(function () {
-	          var value = Math.random() * amplitude * 2 - amplitude;
+	          var value = Math.random() * AMPLITUDE * 2 - AMPLITUDE;
 	          return normalize(value);
 	        });
+	        this.notify();
+	      },
+	      writable: true,
+	      configurable: true
+	    },
+	    setState: {
+	      value: function setState(state) {
+	        var params = [];
+	        var useColor = [];
+	        var _iteratorNormalCompletion = true;
+	        var _didIteratorError = false;
+	        var _iteratorError = undefined;
+
+	        try {
+	          for (var _iterator = _core.$for.getIterator(_core.Object.keys(state)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	            var _name = _step.value;
+
+	            var value = state[_name];
+	            if (_name === "attractor") {
+	              this.attractor = value;
+	            } else {
+	              var index = toIndex(_name);
+	              if (value === "blue") {
+	                params[index] = 0;
+	                useColor[index] = true;
+	              } else {
+	                params[index] = parseFloat(value, 10);
+	                useColor[index] = false;
+	              }
+	            }
+	          }
+	        } catch (err) {
+	          _didIteratorError = true;
+	          _iteratorError = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion && _iterator["return"]) {
+	              _iterator["return"]();
+	            }
+	          } finally {
+	            if (_didIteratorError) {
+	              throw _iteratorError;
+	            }
+	          }
+	        }
+
+	        this.params = params;
+	        this.useColor = useColor;
 	        this.notify();
 	      },
 	      writable: true,
@@ -453,6 +534,24 @@
 	        this.listeners.forEach(function (listener) {
 	          listener();
 	        });
+	      },
+	      writable: true,
+	      configurable: true
+	    },
+	    serialize: {
+	      value: function serialize() {
+	        var params = {
+	          attractor: this.attractor
+	        };
+	        this.params.forEach(function (value, index) {
+	          params[toAlphabet(index)] = value;
+	        });
+	        this.useColor.forEach(function (value, index) {
+	          if (value) {
+	            params[toAlphabet(index)] = "blue";
+	          }
+	        });
+	        return params;
 	      },
 	      writable: true,
 	      configurable: true
@@ -23761,6 +23860,218 @@
 	module.exports = toArray;
 	
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(70)))
+
+/***/ },
+/* 191 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	exports.toAlphabet = toAlphabet;
+	exports.toIndex = toIndex;
+
+	function toAlphabet(index) {
+	  return String.fromCharCode(97 + index);
+	}
+
+	function toIndex(alphabet) {
+	  return alphabet.charCodeAt(0) - 97;
+	}
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+/***/ },
+/* 192 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	exports.decode = exports.parse = __webpack_require__(193);
+	exports.encode = exports.stringify = __webpack_require__(194);
+
+
+/***/ },
+/* 193 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	'use strict';
+
+	// If obj.hasOwnProperty has been overridden, then calling
+	// obj.hasOwnProperty(prop) will break.
+	// See: https://github.com/joyent/node/issues/1707
+	function hasOwnProperty(obj, prop) {
+	  return Object.prototype.hasOwnProperty.call(obj, prop);
+	}
+
+	module.exports = function(qs, sep, eq, options) {
+	  sep = sep || '&';
+	  eq = eq || '=';
+	  var obj = {};
+
+	  if (typeof qs !== 'string' || qs.length === 0) {
+	    return obj;
+	  }
+
+	  var regexp = /\+/g;
+	  qs = qs.split(sep);
+
+	  var maxKeys = 1000;
+	  if (options && typeof options.maxKeys === 'number') {
+	    maxKeys = options.maxKeys;
+	  }
+
+	  var len = qs.length;
+	  // maxKeys <= 0 means that we should not limit keys count
+	  if (maxKeys > 0 && len > maxKeys) {
+	    len = maxKeys;
+	  }
+
+	  for (var i = 0; i < len; ++i) {
+	    var x = qs[i].replace(regexp, '%20'),
+	        idx = x.indexOf(eq),
+	        kstr, vstr, k, v;
+
+	    if (idx >= 0) {
+	      kstr = x.substr(0, idx);
+	      vstr = x.substr(idx + 1);
+	    } else {
+	      kstr = x;
+	      vstr = '';
+	    }
+
+	    k = decodeURIComponent(kstr);
+	    v = decodeURIComponent(vstr);
+
+	    if (!hasOwnProperty(obj, k)) {
+	      obj[k] = v;
+	    } else if (isArray(obj[k])) {
+	      obj[k].push(v);
+	    } else {
+	      obj[k] = [obj[k], v];
+	    }
+	  }
+
+	  return obj;
+	};
+
+	var isArray = Array.isArray || function (xs) {
+	  return Object.prototype.toString.call(xs) === '[object Array]';
+	};
+
+
+/***/ },
+/* 194 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	'use strict';
+
+	var stringifyPrimitive = function(v) {
+	  switch (typeof v) {
+	    case 'string':
+	      return v;
+
+	    case 'boolean':
+	      return v ? 'true' : 'false';
+
+	    case 'number':
+	      return isFinite(v) ? v : '';
+
+	    default:
+	      return '';
+	  }
+	};
+
+	module.exports = function(obj, sep, eq, name) {
+	  sep = sep || '&';
+	  eq = eq || '=';
+	  if (obj === null) {
+	    obj = undefined;
+	  }
+
+	  if (typeof obj === 'object') {
+	    return map(objectKeys(obj), function(k) {
+	      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+	      if (isArray(obj[k])) {
+	        return map(obj[k], function(v) {
+	          return ks + encodeURIComponent(stringifyPrimitive(v));
+	        }).join(sep);
+	      } else {
+	        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+	      }
+	    }).join(sep);
+
+	  }
+
+	  if (!name) return '';
+	  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+	         encodeURIComponent(stringifyPrimitive(obj));
+	};
+
+	var isArray = Array.isArray || function (xs) {
+	  return Object.prototype.toString.call(xs) === '[object Array]';
+	};
+
+	function map (xs, f) {
+	  if (xs.map) return xs.map(f);
+	  var res = [];
+	  for (var i = 0; i < xs.length; i++) {
+	    res.push(f(xs[i], i));
+	  }
+	  return res;
+	}
+
+	var objectKeys = Object.keys || function (obj) {
+	  var res = [];
+	  for (var key in obj) {
+	    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+	  }
+	  return res;
+	};
+
 
 /***/ }
 /******/ ])

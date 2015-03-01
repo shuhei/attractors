@@ -1,6 +1,6 @@
-var mat = require('gl-mat4');
-var createProgram = require('./shader');
-var addColor = require('./add-color');
+import mat from 'gl-mat4';
+import createProgram from './shader';
+import addColor from './add-color';
 
 module.exports = {
   init: init,
@@ -8,8 +8,10 @@ module.exports = {
   update: update
 };
 
-var ITERATIONS = 100000;
-var ROTATION_TIME = 100000;
+const ITERATIONS = 100000;
+const ROTATION_TIME = 100000;
+const ATTRIBUTE_NAMES = ['position', 'color'];
+const UNIFORM_NAMES = ['mvp', 'alpha'];
 
 var program;
 var buffer;
@@ -19,11 +21,9 @@ var viewTranslate = [0, 0, 0];
 
 function init(gl) {
   // Create shaders and program.
-  var vertSrc = getScript('shader-vert');
-  var fragSrc = getScript('shader-frag');
-  var attributeNames = ['position', 'color'];
-  var uniformNames = ['mvp', 'alpha'];
-  program = createProgram(gl, vertSrc, fragSrc, uniformNames, attributeNames);
+  const vertSrc = getScript('shader-vert');
+  const fragSrc = getScript('shader-frag');
+  program = createProgram(gl, vertSrc, fragSrc, UNIFORM_NAMES, ATTRIBUTE_NAMES);
 
   // Create buffer.
   buffer = gl.createBuffer();
@@ -44,8 +44,8 @@ function update(gl, attractor, params, useColor) {
 }
 
 function draw(gl, t, rotation, distance) {
-  var w = gl.drawingBufferWidth;
-  var h = gl.drawingBufferHeight;
+  const w = gl.drawingBufferWidth;
+  const h = gl.drawingBufferHeight;
   gl.viewport(0, 0, w, h);
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -54,7 +54,7 @@ function draw(gl, t, rotation, distance) {
 
   viewTranslate[2] = -distance;
 
-  var theta = (t % ROTATION_TIME) / ROTATION_TIME * Math.PI * 2;
+  const theta = (t % ROTATION_TIME) / ROTATION_TIME * Math.PI * 2;
   mat.identity(mvp);
 
   // Perspective
@@ -77,6 +77,6 @@ function draw(gl, t, rotation, distance) {
 }
 
 function getScript(id) {
-  var script = document.getElementById(id);
+  const script = document.getElementById(id);
   return script.innerText;
 }

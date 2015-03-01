@@ -3,7 +3,7 @@ import { Param } from './param';
 import store from '../store';
 import attractors from '../attractor';
 
-export var Form = React.createClass({
+export const Form = React.createClass({
   componentDidMount() {
     store.onUpdate(this.forceUpdate.bind(this));
   },
@@ -17,7 +17,7 @@ export var Form = React.createClass({
     store.setAttractor(e.target.value);
   },
   render() {
-    var params = store.params.map((value, index) => {
+    const params = store.params.map((value, index) => {
       return <Param key={index}
                     index={index}
                     value={value}
