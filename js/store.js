@@ -26,35 +26,28 @@ function onUpdate(listener) {
 function setAttractor(attractor) {
   store.attractor = attractor;
   var defaults = attractors[attractor].defaults;
-  store.params = Object.keys(defaults).reduce((acc, name) => {
-    acc[name] = normalize(defaults[name]);
-    return acc;
-  }, {});
-  store.useColor = Object.keys(defaults).reduce((acc, name) => {
-    acc[name] = false;
-    return acc;
-  }, {});
-  store.useColor.a = true;
+  store.params = defaults.map(normalize);
+  store.useColor = defaults.map(() => false);
+  store.useColor[0] = true;
   notify();
 }
 
-function setParam(name, value) {
-  store.params[name] = value;
+function setParam(index, value) {
+  store.params[index] = value;
   notify();
 }
 
-function setUseColor(name, value) {
-  store.useColor[name] = value;
+function setUseColor(index, value) {
+  store.useColor[index] = value;
   notify();
 }
 
 function randomizeParams() {
   var amplitude = 3;
-  store.params = Object.keys(store.params).reduce((acc, name) => {
+  store.params = store.params.map(() => {
     var value = Math.random() * amplitude * 2 - amplitude;
-    acc[name] = normalize(value);
-    return acc;
-  }, {});
+    return normalize(value);
+  });
   notify();
 }
 

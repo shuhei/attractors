@@ -384,8 +384,6 @@
 
 	"use strict";
 
-	var _core = __webpack_require__(12)["default"];
-
 	var attractors = __webpack_require__(6);
 
 	var store = {
@@ -414,35 +412,30 @@
 	function setAttractor(attractor) {
 	  store.attractor = attractor;
 	  var defaults = attractors[attractor].defaults;
-	  store.params = _core.Object.keys(defaults).reduce(function (acc, name) {
-	    acc[name] = normalize(defaults[name]);
-	    return acc;
-	  }, {});
-	  store.useColor = _core.Object.keys(defaults).reduce(function (acc, name) {
-	    acc[name] = false;
-	    return acc;
-	  }, {});
-	  store.useColor.a = true;
+	  store.params = defaults.map(normalize);
+	  store.useColor = defaults.map(function () {
+	    return false;
+	  });
+	  store.useColor[0] = true;
 	  notify();
 	}
 
-	function setParam(name, value) {
-	  store.params[name] = value;
+	function setParam(index, value) {
+	  store.params[index] = value;
 	  notify();
 	}
 
-	function setUseColor(name, value) {
-	  store.useColor[name] = value;
+	function setUseColor(index, value) {
+	  store.useColor[index] = value;
 	  notify();
 	}
 
 	function randomizeParams() {
 	  var amplitude = 3;
-	  store.params = _core.Object.keys(store.params).reduce(function (acc, name) {
+	  store.params = store.params.map(function () {
 	    var value = Math.random() * amplitude * 2 - amplitude;
-	    acc[name] = normalize(value);
-	    return acc;
-	  }, {});
+	    return normalize(value);
+	  });
 	  notify();
 	}
 
@@ -462,8 +455,6 @@
 
 	"use strict";
 
-	var _core = __webpack_require__(12)["default"];
-
 	var _babelHelpers = __webpack_require__(7)["default"];
 
 	var React = _babelHelpers.interopRequire(__webpack_require__(8));
@@ -473,8 +464,6 @@
 	var store = _babelHelpers.interopRequire(__webpack_require__(4));
 
 	var attractors = _babelHelpers.interopRequire(__webpack_require__(6));
-
-	var paramNames = ["a", "b", "c", "d", "e", "f"];
 
 	var Form = exports.Form = React.createClass({
 	  displayName: "Form",
@@ -490,11 +479,11 @@
 	    store.setAttractor(e.target.value);
 	  },
 	  render: function render() {
-	    var params = _core.Object.keys(store.params).map(function (name) {
-	      return React.createElement(Param, { key: name,
-	        name: name,
-	        value: store.params[name],
-	        useColor: store.useColor[name] });
+	    var params = store.params.map(function (value, index) {
+	      return React.createElement(Param, { key: index,
+	        index: index,
+	        value: value,
+	        useColor: store.useColor[index] });
 	    });
 	    // TODO: Create options from data.
 	    return React.createElement(
@@ -3326,24 +3315,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
-	};
+	calc.defaults = [1.5, -3.5, -0.765145, -0.744728, -2.5, -1.83];
 
 	// Rampe1
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3353,20 +3330,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    xNew = x * Math.sin(p[0] * x) + Math.cos(p[1] * y);
+	    yNew = y * Math.sin(p[2] * y) + Math.cos(p[3] * z);
+	    zNew = z * Math.sin(p[4] * z) + Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = x * Math.sin(a * x) + Math.cos(b * y);
-	    yNew = y * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = z * Math.sin(e * z) + Math.cos(f * x);
+	    xNew = x * Math.sin(p[0] * x) + Math.cos(p[1] * y);
+	    yNew = y * Math.sin(p[2] * y) + Math.cos(p[3] * z);
+	    zNew = z * Math.sin(p[4] * z) + Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3376,8 +3354,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -3392,24 +3373,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
-	};
+	calc.defaults = [1.5, -3.5, -0.765145, -0.744728, -2.5, -1.83];
 
 	// Rampe3
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3419,20 +3388,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = x * z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = y * x * Math.sin(c * y) - Math.cos(d * z);
-	    zNew = z * y * Math.sin(e * z) - Math.cos(f * x);
+	    xNew = x * z * Math.sin(p[0] * x) - Math.cos(p[1] * y);
+	    yNew = y * x * Math.sin(p[2] * y) - Math.cos(p[3] * z);
+	    zNew = z * y * Math.sin(p[4] * z) - Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = x * z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = y * x * Math.sin(c * y) - Math.cos(d * z);
-	    zNew = z * y * Math.sin(e * z) - Math.cos(f * x);
+	    xNew = x * z * Math.sin(p[0] * x) - Math.cos(p[1] * y);
+	    yNew = y * x * Math.sin(p[2] * y) - Math.cos(p[3] * z);
+	    zNew = z * y * Math.sin(p[4] * z) - Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3442,8 +3412,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -3458,18 +3431,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145
-	};
+	calc.defaults = [1.5, -3.5, -0.765145];
 
 	// Rampe4
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3479,20 +3446,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) + Math.cos(a * y);
-	    yNew = x * Math.sin(b * y) + Math.cos(b * z);
-	    zNew = y * Math.sin(c * z) + Math.cos(c * x);
+	    xNew = z * Math.sin(p[0] * x) + Math.cos(p[0] * y);
+	    yNew = x * Math.sin(p[1] * y) + Math.cos(p[1] * z);
+	    zNew = y * Math.sin(p[2] * z) + Math.cos(p[2] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) + Math.cos(a * y);
-	    yNew = x * Math.sin(b * y) + Math.cos(b * z);
-	    zNew = y * Math.sin(c * z) + Math.cos(c * x);
+	    xNew = z * Math.sin(p[0] * x) + Math.cos(p[0] * y);
+	    yNew = x * Math.sin(p[1] * y) + Math.cos(p[1] * z);
+	    zNew = y * Math.sin(p[2] * z) + Math.cos(p[2] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3502,8 +3470,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -3518,24 +3489,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
-	};
+	calc.defaults = [1.5, -3.5, -0.765145, -0.744728, -2.5, -1.83];
 
 	// Rampe6
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
 	function calc(vertices, iterations, params, useColor) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3545,20 +3504,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    xNew = z * Math.sin(p[0] * x) - Math.cos(p[1] * y);
+	    yNew = x * Math.sin(p[2] * y) + Math.cos(p[3] * z);
+	    zNew = y * Math.sin(p[4] * z) - Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.sin(c * y) + Math.cos(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    xNew = z * Math.sin(p[0] * x) - Math.cos(p[1] * y);
+	    yNew = x * Math.sin(p[2] * y) + Math.cos(p[3] * z);
+	    zNew = y * Math.sin(p[4] * z) - Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3568,14 +3528,10 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    if (useColor.a) {
-	      a = vertices[i * 6 + 5];
-	    }
-	    if (useColor.b) {
-	      b = vertices[i * 6 + 5];
-	    }
-	    if (useColor.c) {
-	      c = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
 	    }
 	  }
 
@@ -3591,24 +3547,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145,
-	  d: -0.744728,
-	  e: -2.5,
-	  f: -1.83
-	};
+	calc.defaults = [1.5, -3.5, -0.765145, -0.744728, -2.5, -1.83];
 
 	// Rampe7
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
-	  var f = params.f;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3618,20 +3562,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.cos(c * y) + Math.sin(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    xNew = z * Math.sin(p[0] * x) - Math.cos(p[1] * y);
+	    yNew = x * Math.cos(p[2] * y) + Math.sin(p[3] * z);
+	    zNew = y * Math.sin(p[4] * z) - Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(b * y);
-	    yNew = x * Math.cos(c * y) + Math.sin(d * z);
-	    zNew = y * Math.sin(e * z) - Math.cos(f * x);
+	    xNew = z * Math.sin(p[0] * x) - Math.cos(p[1] * y);
+	    yNew = x * Math.cos(p[2] * y) + Math.sin(p[3] * z);
+	    zNew = y * Math.sin(p[4] * z) - Math.cos(p[5] * x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3641,8 +3586,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -3657,18 +3605,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 1.5,
-	  b: -3.5,
-	  c: -0.765145
-	};
+	calc.defaults = [1.5, -3.5, -0.765145];
 
 	// Rampe8
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3678,20 +3620,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(y);
-	    yNew = x * Math.cos(b * y) + Math.sin(z);
-	    zNew = y * Math.sin(c * z) - Math.cos(x);
+	    xNew = z * Math.sin(p[0] * x) - Math.cos(y);
+	    yNew = x * Math.cos(p[1] * y) + Math.sin(z);
+	    zNew = y * Math.sin(p[2] * z) - Math.cos(x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = z * Math.sin(a * x) - Math.cos(y);
-	    yNew = x * Math.cos(b * y) + Math.sin(z);
-	    zNew = y * Math.sin(c * z) - Math.cos(x);
+	    xNew = z * Math.sin(p[0] * x) - Math.cos(y);
+	    yNew = x * Math.cos(p[1] * y) + Math.sin(z);
+	    zNew = y * Math.sin(p[2] * z) - Math.cos(x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3701,8 +3644,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -3717,22 +3663,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: 0.484,
-	  b: -2.169,
-	  c: -0.722,
-	  d: -1.305,
-	  e: -2.106
-	};
+	calc.defaults = [0.484, -2.169, -0.722, -1.305, -2.106];
 
 	// Pickover
 	// https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.d;
-	  var e = params.e;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3742,20 +3678,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = Math.sin(a * x) - z * Math.cos(b * x);
-	    yNew = z * Math.sin(c * x) - Math.cos(d * y);
-	    zNew = e * Math.sin(x);
+	    xNew = Math.sin(p[0] * x) - z * Math.cos(p[1] * x);
+	    yNew = z * Math.sin(p[2] * x) - Math.cos(p[3] * y);
+	    zNew = p[4] * Math.sin(x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = Math.sin(a * x) - z * Math.cos(b * x);
-	    yNew = z * Math.sin(c * x) - Math.cos(d * y);
-	    zNew = e * Math.sin(x);
+	    xNew = Math.sin(p[0] * x) - z * Math.cos(p[1] * x);
+	    yNew = z * Math.sin(p[2] * x) - Math.cos(p[3] * y);
+	    zNew = p[4] * Math.sin(x);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3765,8 +3702,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    a = vertices[i * 6 + 5];
-	    // b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -3781,24 +3721,12 @@
 	module.exports = calc;
 
 	// TODO: Figure out better parameters.
-	calc.defaults = {
-	  a: -0.966918,
-	  b: 2.879879,
-	  c: 0.966918,
-	  d: 0.736,
-	  e: 0.744728,
-	  f: 0.765145
-	};
+	calc.defaults = [-0.966918, 2.879879, 0.966918, 0.736, 0.744728, 0.765145];
 
 	// The king's dream
 	// http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
-	function calc(vertices, iterations, params) {
-	  var a = params.a;
-	  var b = params.b;
-	  var c = params.c;
-	  var d = params.e;
-	  var e = params.d;
-	  var f = params.f;
+	function calc(vertices, iterations, params, useColor) {
+	  var p = params.slice();
 
 	  var x = 0.1;
 	  var y = 0.1;
@@ -3808,20 +3736,21 @@
 	  var yNew;
 	  var zNew;
 	  var i;
+	  var j;
 
 	  for (i = 0; i < 100; i++) {
-	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
-	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
-	    zNew = Math.sin(y * b) + e * Math.sin(z * b);
+	    xNew = Math.sin(z * p[2]) + p[5] * Math.sin(x * p[2]);
+	    yNew = Math.sin(x * p[0]) + p[3] * Math.sin(y * p[0]);
+	    zNew = Math.sin(y * p[1]) + p[4] * Math.sin(z * p[1]);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
 	  }
 
 	  for (i = 0; i < iterations; i++) {
-	    xNew = Math.sin(z * c) + f * Math.sin(x * c);
-	    yNew = Math.sin(x * a) + d * Math.sin(y * a);
-	    zNew = Math.sin(y * b) + e * Math.sin(z * b);
+	    xNew = Math.sin(z * p[2]) + p[5] * Math.sin(x * p[2]);
+	    yNew = Math.sin(x * p[0]) + p[3] * Math.sin(y * p[0]);
+	    zNew = Math.sin(y * p[1]) + p[4] * Math.sin(z * p[1]);
 	    x = xNew;
 	    y = yNew;
 	    z = zNew;
@@ -3831,8 +3760,11 @@
 	    vertices[i * 6 + 2] = z;
 
 	    // Glitch
-	    // a = vertices[i * 6 + 5];
-	    b = vertices[i * 6 + 5];
+	    for (j = 0; j < useColor.length; j++) {
+	      if (useColor[j]) {
+	        p[j] = vertices[i * 6 + 5];
+	      }
+	    }
 	  }
 
 	  return vertices;
@@ -4076,22 +4008,23 @@
 
 	  valueChanged: function valueChanged(e) {
 	    var value = parseFloat(e.target.value, 10);
-	    store.setParam(this.props.name, value);
+	    store.setParam(this.props.index, value);
 	  },
 	  useColorChanged: function useColorChanged(e) {
-	    store.setUseColor(this.props.name, e.target.checked);
+	    store.setUseColor(this.props.index, e.target.checked);
 	  },
 	  render: function render() {
 	    var value = this.props.useColor ? 0 : this.props.value || 0;
 	    var display = this.props.useColor ? "" : this.props.value;
 	    var disabled = this.props.useColor || this.props.value === undefined;
+	    var paramName = String.fromCharCode(97 + this.props.index);
 	    return React.createElement(
 	      "div",
 	      { className: "param" },
 	      React.createElement(
 	        "label",
 	        null,
-	        this.props.name
+	        paramName
 	      ),
 	      React.createElement("input", { type: "range", min: "-3", max: "3", step: "0.001", value: value, disabled: disabled, onChange: this.valueChanged }),
 	      React.createElement(

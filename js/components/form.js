@@ -3,8 +3,6 @@ import { Param } from './param';
 import store from '../store';
 import attractors from '../attractor';
 
-const paramNames = ['a', 'b', 'c', 'd', 'e', 'f'];
-
 export var Form = React.createClass({
   componentDidMount() {
     store.onUpdate(this.forceUpdate.bind(this));
@@ -19,11 +17,11 @@ export var Form = React.createClass({
     store.setAttractor(e.target.value);
   },
   render() {
-    var params = Object.keys(store.params).map((name) => {
-      return <Param key={name}
-                    name={name}
-                    value={store.params[name]}
-                    useColor={store.useColor[name]} />;
+    var params = store.params.map((value, index) => {
+      return <Param key={index}
+                    index={index}
+                    value={value}
+                    useColor={store.useColor[index]} />;
     });
     // TODO: Create options from data.
     return (
