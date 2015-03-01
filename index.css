@@ -23,6 +23,7 @@ body {
   width: 10em;
   text-align: right;
   margin-right: 1em;
+  font-size: 16px;
 }
 
 .param__display {
