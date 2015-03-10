@@ -4,13 +4,13 @@
   "description": "Strange attractors in WebGL",
   "dependencies": {
     "babel-runtime": "^4.6.3",
-    "gh-pagesify": "^0.2.0",
     "gl-mat4": "^1.1.2",
     "react": "^0.12.2"
   },
   "devDependencies": {
     "babel-core": "^4.6.3",
     "babel-loader": "^4.0.0",
+    "gh-pagesify": "^0.2.1",
     "webpack": "^1.5.3"
   },
   "scripts": {
