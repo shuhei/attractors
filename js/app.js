@@ -2,7 +2,7 @@ import mat from 'gl-mat4';
 import createProgram from './lib/shader';
 import addColor from './add-color';
 
-module.exports = {
+export default {
   init: init,
   draw: draw,
   update: update
@@ -13,11 +13,11 @@ const ROTATION_TIME = 100000;
 const ATTRIBUTE_NAMES = ['position', 'color'];
 const UNIFORM_NAMES = ['mvp', 'alpha'];
 
-var program;
-var buffer;
-var vertices;
-var mvp = mat.create();
-var viewTranslate = [0, 0, 0];
+let program;
+let buffer;
+let vertices;
+const mvp = mat.create();
+const viewTranslate = [0, 0, 0];
 
 function init(gl) {
   // Create shaders and program.
@@ -39,7 +39,7 @@ function init(gl) {
 }
 
 function update(gl, attractor, params, useColor) {
-  attractor(vertices, ITERATIONS, params, useColor);
+  attractor.calc(vertices, ITERATIONS, params, useColor);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 }
 

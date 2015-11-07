@@ -1,9 +1,7 @@
 'use strict';
 
-module.exports = calc;
-
 // TODO: Figure out better parameters.
-calc.defaults = [
+export const defaults = [
   -0.966918,
   2.879879,
   0.966918,
@@ -14,18 +12,18 @@ calc.defaults = [
 
 // The king's dream
 // http://nathanselikoff.com/training/tutorial-strange-attractors-in-c-and-opengl
-function calc(vertices, iterations, params, useColor) {
-  var p = params.slice();
+export function calc(vertices, iterations, params, useColor) {
+  const p = params.slice();
 
-  var x = 0.1;
-  var y = 0.1;
-  var z = 0.1;
+  let x = 0.1;
+  let y = 0.1;
+  let z = 0.1;
 
-  var xNew;
-  var yNew;
-  var zNew;
-  var i;
-  var j;
+  let xNew;
+  let yNew;
+  let zNew;
+  let i;
+  let j;
 
   for (i = 0; i < 100; i++) {
     xNew = Math.sin(z * p[2]) + p[5] * Math.sin(x * p[2]);

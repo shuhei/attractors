@@ -1,9 +1,7 @@
 'use strict';
 
-module.exports = calc;
-
 // TODO: Figure out better parameters.
-calc.defaults = [
+export const defaults = [
   1.5,
   -3.5,
   -0.765145,
@@ -14,18 +12,18 @@ calc.defaults = [
 
 // Rampe7
 // https://softologyblog.wordpress.com/2009/10/19/3d-strange-attractors/
-function calc(vertices, iterations, params, useColor) {
-  var p = params.slice();
+export function calc(vertices, iterations, params, useColor) {
+  const p = params.slice();
 
-  var x = 0.1;
-  var y = 0.1;
-  var z = 0.1;
+  let x = 0.1;
+  let y = 0.1;
+  let z = 0.1;
 
-  var xNew;
-  var yNew;
-  var zNew;
-  var i;
-  var j;
+  let xNew;
+  let yNew;
+  let zNew;
+  let i;
+  let j;
 
   for (i = 0; i < 100; i++) {
     xNew = z * Math.sin(p[0] * x) - Math.cos(p[1] * y);

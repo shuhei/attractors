@@ -1,14 +1,14 @@
 'use strict';
 
-module.exports = function(vertices, iterations) {
-  var h;
-  var x;
+export default function(vertices, iterations) {
+  let h;
+  let x;
 
-  var r;
-  var g;
-  var b;
+  let r;
+  let g;
+  let b;
 
-  var i;
+  let i;
 
   for (i = 0; i < iterations; i++) {
     // HSL to RGB where S and L are always 1.
@@ -46,4 +46,4 @@ module.exports = function(vertices, iterations) {
   }
 
   return vertices;
-};
+}
