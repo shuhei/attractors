@@ -39,14 +39,15 @@ export function calc(vertices, iterations, params, useColor) {
     y = yNew;
     z = zNew;
 
-    vertices[i * 6] = x;
-    vertices[i * 6 + 1] = y;
-    vertices[i * 6 + 2] = z;
+    vertices[i * 7] = x;
+    vertices[i * 7 + 1] = y;
+    vertices[i * 7 + 2] = z;
+    vertices[i * 7 + 6] = i;
 
     // Glitch
     for (j = 0; j < useColor.length; j++) {
       if (useColor[j]) {
-        p[j] = vertices[i * 6 + 5];
+        p[j] = vertices[i * 7 + 5];
       }
     }
   }

@@ -12,7 +12,7 @@ export default function(vertices, iterations) {
 
   for (i = 0; i < iterations; i++) {
     // HSL to RGB where S and L are always 1.
-    h = 6 * i / iterations;
+    h = 7 * i / iterations;
     x = 1 - Math.abs(h % 2 - 1)
     if (h < 1) {
       r = 1;
@@ -40,9 +40,9 @@ export default function(vertices, iterations) {
       b = x;
     }
 
-    vertices[i * 6 + 3] = r;
-    vertices[i * 6 + 4] = g;
-    vertices[i * 6 + 5] = b;
+    vertices[i * 7 + 3] = r;
+    vertices[i * 7 + 4] = g;
+    vertices[i * 7 + 5] = b;
   }
 
   return vertices;

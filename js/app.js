@@ -11,8 +11,8 @@ export default {
 
 const ITERATIONS = 100000;
 const ROTATION_TIME = 100000;
-const ATTRIBUTE_NAMES = ['position', 'color'];
-const UNIFORM_NAMES = ['mvp', 'alpha'];
+const ATTRIBUTE_NAMES = ['position', 'color', 'index'];
+const UNIFORM_NAMES = ['mvp', 'alpha', 'time'];
 
 let program;
 let buffer;
@@ -29,13 +29,16 @@ function init(gl) {
   // Create buffer.
   buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  // Attributes
   gl.enableVertexAttribArray(program.attributes.position);
-  gl.vertexAttribPointer(program.attributes.position, 3, gl.FLOAT, false, 24, 0);
+  gl.vertexAttribPointer(program.attributes.position, 3, gl.FLOAT, false, 28, 0);
   gl.enableVertexAttribArray(program.attributes.color);
-  gl.vertexAttribPointer(program.attributes.color, 3, gl.FLOAT, false, 24, 12);
+  gl.vertexAttribPointer(program.attributes.color, 3, gl.FLOAT, false, 28, 12);
+  gl.enableVertexAttribArray(program.attributes.index);
+  gl.vertexAttribPointer(program.attributes.index, 1, gl.FLOAT, false, 28, 24);
 
   // Calc vertices.
-  vertices = new Float32Array(ITERATIONS * 6);
+  vertices = new Float32Array(ITERATIONS * 7);
   addColor(vertices, ITERATIONS);
 }
 
@@ -66,8 +69,11 @@ function draw(gl, t, rotation, distance) {
   mat.rotateY(mvp, mvp, rotation.x + theta);
   mat.rotateX(mvp, mvp, rotation.y + theta);
 
+  // Uniforms
   gl.uniformMatrix4fv(program.uniforms.mvp, false, mvp);
   gl.uniform1f(program.uniforms.alpha, 0.2 / (distance / 6));
+  const tt = (t * 10) % ITERATIONS;
+  gl.uniform1f(program.uniforms.time, tt);
 
   gl.enable(gl.BLEND);
   gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE)
