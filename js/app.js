@@ -1,4 +1,5 @@
 import mat from 'gl-mat4';
+
 import createProgram from './lib/shader';
 import addColor from './add-color';
 

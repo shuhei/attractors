@@ -1,5 +1,7 @@
 import qs from 'querystring';
 import React from 'react';
+import ReactDOM from 'react-dom';
+
 import app from './app';
 import fit from './lib/fit';
 import control from './lib/control';
@@ -25,7 +27,7 @@ window.addEventListener('popstate', (e) => {
   }
 }, false);
 
-React.render(
+ReactDOM.render(
   <Form />,
   document.getElementById('form')
 );
