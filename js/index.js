@@ -7,7 +7,7 @@ import fit from './lib/fit';
 import control from './lib/control';
 import attractors from './attractor';
 import store from './store';
-import { Form } from './components/form';
+import Form from './components/form';
 
 const INITIAL_ATTRACTOR = 'kingsDream';
 
