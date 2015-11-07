@@ -18,9 +18,9 @@ export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attrib
     throw new Error('Error linking program: ' + gl.getProgramInfoLog(program));
   }
 
-  var uniforms = {};
+  const uniforms = {};
   uniformNames.forEach((name) => {
-    var location = gl.getUniformLocation(program, name);
+    const location = gl.getUniformLocation(program, name);
     console.log('uniform location', name, location);
     uniforms[name] = location;
   });

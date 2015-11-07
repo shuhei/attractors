@@ -1,8 +1,8 @@
 import qs from 'querystring';
 import React from 'react';
 import app from './app';
-import fit from './fit';
-import control from './control';
+import fit from './lib/fit';
+import control from './lib/control';
 import attractors from './attractor';
 import store from './store';
 import { Form } from './components/form';

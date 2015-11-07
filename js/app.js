@@ -1,5 +1,5 @@
 import mat from 'gl-mat4';
-import createProgram from './shader';
+import createProgram from './lib/shader';
 import addColor from './add-color';
 
 module.exports = {

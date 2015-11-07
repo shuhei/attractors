@@ -1,26 +1,26 @@
-var DISTANCE_LOWER_BOUND = 0.1;
-var DISTANCE_UPPER_BOUND = 10;
-var GESTURE_ZOOM_SPEED = 0.1;
-var WHEEL_ZOOM_SPEED = 0.01;
-var ROTATION_INERTIA = 0.9;
-var DISTANCE_INERTIA = 0.7;
-var MOUSE_TO_RADIAN = Math.PI / 300.0;
+const DISTANCE_LOWER_BOUND = 0.1;
+const DISTANCE_UPPER_BOUND = 10;
+const GESTURE_ZOOM_SPEED = 0.1;
+const WHEEL_ZOOM_SPEED = 0.01;
+const ROTATION_INERTIA = 0.9;
+const DISTANCE_INERTIA = 0.7;
+const MOUSE_TO_RADIAN = Math.PI / 300.0;
 
 export default function(container, initialDistance) {
-  var rotation = { x: 0, y: 0 };
-  var target = { x: 0, y: 0 };
-  var targetOnDown = { x: 0, y: 0};
-  var mouse = { x: 0, y: 0 };
-  var mouseOnDown = { x: 0, y: 0 };
+  const rotation = { x: 0, y: 0 };
+  const target = { x: 0, y: 0 };
+  const targetOnDown = { x: 0, y: 0};
+  const mouse = { x: 0, y: 0 };
+  const mouseOnDown = { x: 0, y: 0 };
 
-  var distance = initialDistance;
-  var distanceTarget = initialDistance;
+  let distance = initialDistance;
+  let distanceTarget = initialDistance;
 
-  var lastClickTime = new Date().getTime();
-  var isBirdView = true;
+  let lastClickTime = new Date().getTime();
+  let isBirdView = true;
 
-  var touchEnabled = false;
-  var downEventName, upEventName, outEventName, moveEventName;
+  let touchEnabled = false;
+  let downEventName, upEventName, outEventName, moveEventName;
   if ('ontouchstart' in document.documentElement) {
     touchEnabled = true;
     downEventName = 'touchstart';
@@ -35,7 +35,7 @@ export default function(container, initialDistance) {
   }
 
   // For pinch gesture on touch devices.
-  var previousScale = null;
+  let previousScale = null;
 
   //
   // Event handlers
@@ -45,9 +45,9 @@ export default function(container, initialDistance) {
     event.preventDefault();
 
     // Check if it's double click/tap.
-    var currentTime = new Date().getTime();
-    var diff = currentTime - lastClickTime;
-    var isSingleTap = touchEnabled && event.targetTouches.length === 1;
+    const currentTime = new Date().getTime();
+    const diff = currentTime - lastClickTime;
+    const isSingleTap = touchEnabled && event.targetTouches.length === 1;
     lastClickTime = currentTime;
     if ((!touchEnabled || isSingleTap) && diff < 300) {
       isBirdView = !isBirdView;
@@ -62,7 +62,7 @@ export default function(container, initialDistance) {
       if (event.targetTouches.length !== 1) {
         return;
       }
-      var touchItem = event.targetTouches[0];
+      const touchItem = event.targetTouches[0];
       mouseOnDown.x = - touchItem.pageX;
       mouseOnDown.y = touchItem.pageY;
     } else {
@@ -94,7 +94,7 @@ export default function(container, initialDistance) {
       if (event.targetTouches.length !== 1) {
         return;
       }
-      var touchItem = event.targetTouches[0];
+      const touchItem = event.targetTouches[0];
       mouse.x = - touchItem.pageX;
       mouse.y = touchItem.pageY;
     } else {
@@ -108,7 +108,7 @@ export default function(container, initialDistance) {
 
   function onMouseWheel(event) {
     // mousewheel -> wheelDeltaY, wheel -> deltaY
-    var deltaY = event.wheelDeltaY || event.deltaY || 0;
+    const deltaY = event.wheelDeltaY || event.deltaY || 0;
     event.preventDefault();
     zoom(deltaY * WHEEL_ZOOM_SPEED);
     return false;
@@ -119,13 +119,13 @@ export default function(container, initialDistance) {
   }
 
   function onGestureChange(event) {
-    var scale = event.scale / previousScale;
+    const scale = event.scale / previousScale;
     zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
     previsousScale = event.scale;
   }
 
   function onGestureEnd(event) {
-    var scale = event.scale / previousScale;
+    const scale = event.scale / previousScale;
     zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
     previousScale = null;
   }
@@ -147,7 +147,7 @@ export default function(container, initialDistance) {
   container.addEventListener('gesturechange', onGestureChange, false);
   container.addEventListener('gestureend', onGestureEnd, false);
 
-  var states = {
+  const states = {
     rotation: rotation,
     distance: distance
   };
