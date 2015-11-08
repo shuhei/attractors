@@ -72,7 +72,8 @@ function draw(gl, t, rotation, distance) {
   // Uniforms
   gl.uniformMatrix4fv(program.uniforms.mvp, false, mvp);
   gl.uniform1f(program.uniforms.alpha, 0.2 / (distance / 6));
-  const tt = (t * 10) % ITERATIONS;
+  // Stop a bit after animation completes.
+  const tt = (t * 10) % (ITERATIONS * 1.2);
   gl.uniform1f(program.uniforms.time, tt);
 
   gl.enable(gl.BLEND);
