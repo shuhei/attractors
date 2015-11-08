@@ -15,10 +15,11 @@
     "babel-preset-react": "^6.1.2",
     "eslint": "^1.9.0",
     "gh-pagesify": "^1.0.0",
-    "webpack": "^1.5.3"
+    "webpack": "^1.5.3",
+    "webpack-dev-server": "^1.12.1"
   },
   "scripts": {
-    "start": "webpack --watch --progress --colors",
+    "start": "webpack-dev-server",
     "build": "rm -rf public && mkdir public && webpack && cp ./{index.html,index.css,bundle.js} public/",
     "deploy": "npm run build && gh-pagesify",
     "lint": "eslint js",
