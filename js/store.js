@@ -66,9 +66,18 @@ class Store {
   }
 
   notify() {
+    const data = this.getData();
     this.listeners.forEach((listener) => {
-      listener();
+      listener(data);
     });
+  }
+
+  getData() {
+    return {
+      attractor: this.attractor,
+      params: this.params,
+      useColor: this.useColor
+    };
   }
 
   serialize() {

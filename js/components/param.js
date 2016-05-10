@@ -2,28 +2,30 @@ import React from 'react';
 
 import store from '../store';
 
-export default class Param extends React.Component {
-  valueChanged(e) {
+function valueChanged(index) {
+  return e => {
     const value = parseFloat(e.target.value, 10);
-    store.setParam(this.props.index, value);
-  }
+    store.setParam(index, value);
+  };
+}
 
-  useColorChanged(e) {
-    store.setUseColor(this.props.index, e.target.checked);
-  }
+function useColorChanged(index) {
+  return e => {
+    store.setUseColor(index, e.target.checked);
+  };
+}
 
-  render() {
-    const value = this.props.useColor ? 0 : (this.props.value || 0);
-    const display = this.props.useColor ? '' : this.props.value;
-    const disabled = this.props.useColor || this.props.value === undefined;
-    const paramName = String.fromCharCode(97 + this.props.index);
-    return (
-      <div className="param">
-        <label>{paramName}</label>
-        <input type="range" min="-3" max="3" step="0.001" value={value} disabled={disabled} onChange={this.valueChanged.bind(this)} />
-        <span className="param__display">{display}</span>
-        <label><input type="checkbox" checked={this.props.useColor} onChange={this.useColorChanged.bind(this)} />color</label>
-      </div>
-    );
-  }
+export default function ({ useColor, value, index }) {
+  const v = useColor ? 0 : (value || 0);
+  const display = useColor ? '' : value;
+  const disabled = useColor || value === undefined;
+  const paramName = String.fromCharCode(97 + index);
+  return (
+    <div className="param">
+      <label>{paramName}</label>
+      <input type="range" min="-3" max="3" step="0.001" value={v} disabled={disabled} onChange={valueChanged(index)} />
+      <span className="param__display">{display}</span>
+      <label><input type="checkbox" checked={useColor} onChange={useColorChanged(index)} />color</label>
+    </div>
+  );
 }
