@@ -39,12 +39,12 @@ document.body.appendChild(canvas);
 fit(canvas);
 const getStates = control(canvas, INITIAL_DISTANCE);
 
-canvas.addEventListener('webglcontextlost', function(e) {
+canvas.addEventListener('webglcontextlost', e => {
   console.log('context lost', e);
   e.preventDefault();
 }, false);
 
-canvas.addEventListener('webglcontextrestores', function(e) {
+canvas.addEventListener('webglcontextrestores', e => {
   console.log('context restored', e);
 }, false);
 

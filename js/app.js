@@ -3,11 +3,7 @@ import mat from 'gl-mat4';
 import createProgram from './lib/shader';
 import addColor from './add-color';
 
-export default {
-  init: init,
-  draw: draw,
-  update: update
-};
+export default { init, draw, update };
 
 const ITERATIONS = 100000;
 const ROTATION_TIME = 100000;
@@ -70,8 +66,8 @@ function draw(gl, t, rotation, distance) {
   gl.uniform1f(program.uniforms.alpha, 0.2 / (distance / 6));
 
   gl.enable(gl.BLEND);
-  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE)
-  gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD)
+  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE);
+  gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
 
   // TODO: Smooth point?
   gl.drawArrays(gl.POINTS, 0, ITERATIONS);

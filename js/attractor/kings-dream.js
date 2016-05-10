@@ -1,5 +1,3 @@
-'use strict';
-
 // TODO: Figure out better parameters.
 export const defaults = [
   -0.966918,
@@ -7,7 +5,7 @@ export const defaults = [
   0.966918,
   0.736,
   0.744728,
-  0.765145
+  0.765145,
 ];
 
 // The king's dream

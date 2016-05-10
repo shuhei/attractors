@@ -1,4 +1,4 @@
-export default function(canvas) {
+export default function (canvas) {
   window.addEventListener('resize', resize, false);
   resize();
 

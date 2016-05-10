@@ -15,7 +15,7 @@ export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attrib
 
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    throw new Error('Error linking program: ' + gl.getProgramInfoLog(program));
+    throw new Error(`Error linking program: ${gl.getProgramInfoLog(program)}`);
   }
 
   const uniforms = {};
@@ -25,11 +25,7 @@ export default function createProgram(gl, vertSrc, fragSrc, uniformNames, attrib
     uniforms[name] = location;
   });
 
-  return {
-    program: program,
-    uniforms: uniforms,
-    attributes: attributes
-  };
+  return { program, uniforms, attributes };
 }
 
 function compileShader(gl, type, src) {
@@ -37,7 +33,7 @@ function compileShader(gl, type, src) {
   gl.shaderSource(shader, src);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    throw new Error('Error compiling shader: ' + gl.getShaderInfoLog(shader));
+    throw new Error(`Error compiling shader: ${gl.getShaderInfoLog(shader)}`);
   }
   return shader;
 }

@@ -15,7 +15,7 @@ function useColorChanged(index) {
   };
 }
 
-export default function ({ useColor, value, index }) {
+function Param({ useColor, value, index }) {
   const v = useColor ? 0 : (value || 0);
   const display = useColor ? '' : value;
   const disabled = useColor || value === undefined;
@@ -23,9 +23,21 @@ export default function ({ useColor, value, index }) {
   return (
     <div className="param">
       <label>{paramName}</label>
-      <input type="range" min="-3" max="3" step="0.001" value={v} disabled={disabled} onChange={valueChanged(index)} />
+      <input
+        type="range" min="-3" max="3" step="0.001" value={v}
+        disabled={disabled} onChange={valueChanged(index)}
+      />
       <span className="param__display">{display}</span>
-      <label><input type="checkbox" checked={useColor} onChange={useColorChanged(index)} />color</label>
+      <label>
+        <input type="checkbox" checked={useColor} onChange={useColorChanged(index)} />color
+      </label>
     </div>
   );
 }
+Param.propTypes = {
+  useColor: React.PropTypes.bool,
+  value: React.PropTypes.number,
+  index: React.PropTypes.number,
+};
+
+export default Param;

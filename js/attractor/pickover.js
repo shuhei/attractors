@@ -1,12 +1,10 @@
-'use strict';
-
 // TODO: Figure out better parameters.
 export const defaults = [
   0.484,
   -2.169,
   -0.722,
   -1.305,
-  -2.106
+  -2.106,
 ];
 
 // Pickover
@@ -27,7 +25,7 @@ export function calc(vertices, iterations, params, useColor) {
   for (i = 0; i < 100; i++) {
     xNew = Math.sin(p[0] * x) - z * Math.cos(p[1] * x);
     yNew = z * Math.sin(p[2] * x) - Math.cos(p[3] * y);
-    zNew = p[4] * Math.sin(x)
+    zNew = p[4] * Math.sin(x);
     x = xNew;
     y = yNew;
     z = zNew;
@@ -36,7 +34,7 @@ export function calc(vertices, iterations, params, useColor) {
   for (i = 0; i < iterations; i++) {
     xNew = Math.sin(p[0] * x) - z * Math.cos(p[1] * x);
     yNew = z * Math.sin(p[2] * x) - Math.cos(p[3] * y);
-    zNew = p[4] * Math.sin(x)
+    zNew = p[4] * Math.sin(x);
     x = xNew;
     y = yNew;
     z = zNew;

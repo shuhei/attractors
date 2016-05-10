@@ -6,5 +6,5 @@ export default {
   rampe7: require('./rampe7'),
   rampe8: require('./rampe8'),
   pickover: require('./pickover'),
-  kingsDream: require('./kings-dream')
+  kingsDream: require('./kings-dream'),
 };

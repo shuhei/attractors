@@ -1,5 +1,3 @@
-'use strict';
-
 // TODO: Figure out better parameters.
 export const defaults = [
   1.5,
@@ -7,7 +5,7 @@ export const defaults = [
   -0.765145,
   -0.744728,
   -2.5,
-  -1.83
+  -1.83,
 ];
 
 // Rampe1

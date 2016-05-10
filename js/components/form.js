@@ -2,7 +2,6 @@ import React from 'react';
 
 import Param from './param';
 import store from '../store';
-import attractors from '../attractor';
 
 function randomizeParams() {
   store.randomizeParams();
@@ -30,12 +29,14 @@ function connectToStore(Component) {
 }
 
 function Form({ params, attractor, useColor }) {
-  const sliders = params.map((value, index) => {
-    return <Param key={index}
-                  index={index}
-                  value={value}
-                  useColor={useColor[index]} />;
-  });
+  const sliders = params.map((value, index) =>
+    <Param
+      key={index}
+      index={index}
+      value={value}
+      useColor={useColor[index]}
+    />
+  );
   // TODO: Create options from data.
   return (
     <div>
@@ -54,6 +55,11 @@ function Form({ params, attractor, useColor }) {
     </div>
   );
 }
+Form.propTypes = {
+  useColor: React.PropTypes.array,
+  attractor: React.PropTypes.string,
+  params: React.PropTypes.array,
+};
 
 const ConnectedForm = connectToStore(Form);
 export default ConnectedForm;

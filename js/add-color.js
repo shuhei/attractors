@@ -1,6 +1,4 @@
-'use strict';
-
-export default function(vertices, iterations) {
+export default function (vertices, iterations) {
   let h;
   let x;
 
@@ -13,7 +11,7 @@ export default function(vertices, iterations) {
   for (i = 0; i < iterations; i++) {
     // HSL to RGB where S and L are always 1.
     h = 6 * i / iterations;
-    x = 1 - Math.abs(h % 2 - 1)
+    x = 1 - Math.abs(h % 2 - 1);
     if (h < 1) {
       r = 1;
       g = x;

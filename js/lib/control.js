@@ -6,10 +6,10 @@ const ROTATION_INERTIA = 0.9;
 const DISTANCE_INERTIA = 0.7;
 const MOUSE_TO_RADIAN = Math.PI / 300.0;
 
-export default function(container, initialDistance) {
+export default function (container, initialDistance) {
   const rotation = { x: 0, y: 0 };
   const target = { x: 0, y: 0 };
-  const targetOnDown = { x: 0, y: 0};
+  const targetOnDown = { x: 0, y: 0 };
   const mouse = { x: 0, y: 0 };
   const mouseOnDown = { x: 0, y: 0 };
 
@@ -20,7 +20,10 @@ export default function(container, initialDistance) {
   let isBirdView = true;
 
   let touchEnabled = false;
-  let downEventName, upEventName, outEventName, moveEventName;
+  let downEventName;
+  let upEventName;
+  let outEventName;
+  let moveEventName;
   if ('ontouchstart' in document.documentElement) {
     touchEnabled = true;
     downEventName = 'touchstart';
@@ -76,14 +79,14 @@ export default function(container, initialDistance) {
     container.style.cursor = 'move';
   }
 
-  function onMouseUp(event) {
+  function onMouseUp() {
     container.removeEventListener(moveEventName, onMouseMove, false);
     container.removeEventListener(upEventName, onMouseUp, false);
     container.removeEventListener(outEventName, onMouseOut, false);
     container.style.cursor = 'auto';
   }
 
-  function onMouseOut(event) {
+  function onMouseOut() {
     container.removeEventListener(outEventName, onMouseMove, false);
     container.removeEventListener(upEventName, onMouseUp, false);
     container.removeEventListener(outEventName, onMouseOut, false);
@@ -121,7 +124,7 @@ export default function(container, initialDistance) {
   function onGestureChange(event) {
     const scale = event.scale / previousScale;
     zoom(GESTURE_ZOOM_SPEED * distanceTarget * (scale - 1) / scale);
-    previsousScale = event.scale;
+    previousScale = event.scale;
   }
 
   function onGestureEnd(event) {
@@ -147,12 +150,9 @@ export default function(container, initialDistance) {
   container.addEventListener('gesturechange', onGestureChange, false);
   container.addEventListener('gestureend', onGestureEnd, false);
 
-  const states = {
-    rotation: rotation,
-    distance: distance
-  };
+  const states = { rotation, distance };
 
-  return function() {
+  return () => {
     rotation.x += (target.x - rotation.x) * (1.0 - ROTATION_INERTIA);
     rotation.y += (target.y - rotation.y) * (1.0 - ROTATION_INERTIA);
 
@@ -161,4 +161,4 @@ export default function(container, initialDistance) {
     states.distance = distance;
     return states;
   };
-};
+}

@@ -1,10 +1,8 @@
-'use strict';
-
 // TODO: Figure out better parameters.
 export const defaults = [
   1.5,
   -3.5,
-  -0.765145
+  -0.765145,
 ];
 
 // Rampe4

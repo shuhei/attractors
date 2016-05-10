@@ -45,7 +45,7 @@ class Store {
   setState(state) {
     const params = [];
     const useColor = [];
-    for (let name of Object.keys(state)) {
+    for (const name of Object.keys(state)) {
       const value = state[name];
       if (name === 'attractor') {
         this.attractor = value;
@@ -76,13 +76,13 @@ class Store {
     return {
       attractor: this.attractor,
       params: this.params,
-      useColor: this.useColor
+      useColor: this.useColor,
     };
   }
 
   serialize() {
     const params = {
-      attractor: this.attractor
+      attractor: this.attractor,
     };
     this.params.forEach((value, index) => {
       params[toAlphabet(index)] = value;
